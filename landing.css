@@ -1,0 +1,39 @@
+:root { --bg: #f6f7f9; --panel: #ffffff; --ink: #14171c; --muted: #5b6370; --line: #d9dde3; --accent: #1d4ed8; --accent-ink: #ffffff; --chip: #eef2ff; --radius: 12px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0f1216; --panel: #171b21; --ink: #e8ebf0; --muted: #9aa3af; --line: #2b313b; --accent: #6f93ff; --accent-ink: #0b1020; --chip: #1e2740; }
+}
+:root[data-theme="dark"] { --bg: #0f1216; --panel: #171b21; --ink: #e8ebf0; --muted: #9aa3af; --line: #2b313b; --accent: #6f93ff; --accent-ink: #0b1020; --chip: #1e2740; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Hiragino Sans", "PingFang SC", "Noto Sans", sans-serif; overflow-x: hidden; }
+a { color: var(--accent); }
+header.site, footer.site { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; max-width: 960px; margin: 0 auto; }
+header.site .brand { font-weight: 800; color: var(--ink); text-decoration: none; font-size: 18px; letter-spacing: -0.02em; }
+.hdr { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.hdr select { font: inherit; font-size: 13px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+main { max-width: 960px; margin: 0 auto; padding: 8px 16px 48px; }
+.hero { padding: 36px 0 24px; }
+.hero h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 14px; }
+.lead { font-size: 18px; color: var(--muted); max-width: 680px; margin: 0 0 22px; }
+.cta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.price { color: var(--muted); font-size: 14px; }
+.btn { display: inline-block; background: var(--accent); color: var(--accent-ink); padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; }
+.btn.small { padding: 6px 12px; font-size: 14px; border-radius: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 24px 0; }
+.grid article { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.grid h2 { font-size: 17px; margin: 0 0 6px; }
+.grid p { margin: 0; color: var(--muted); font-size: 15px; }
+section.how, section.faq { margin-top: 36px; }
+section h2 { font-size: 20px; margin: 0 0 10px; }
+section ol { padding-left: 20px; margin: 0; }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 8px 0; }
+summary { cursor: pointer; font-weight: 600; }
+details p { color: var(--muted); margin: 8px 0 0; }
+.nonaff { color: var(--muted); font-size: 13px; margin-top: 36px; border-top: 1px solid var(--line); padding-top: 14px; }
+footer.site { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); margin-top: 24px; }
+footer.site nav a { color: var(--muted); margin-left: 12px; }
+.legal main h1 { font-size: 30px; margin: 10px 0 6px; }
+.legal main p { margin: 0 0 14px; }
+.muted { color: var(--muted); font-size: 14px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 420px) { .hero { padding-top: 20px; } }
