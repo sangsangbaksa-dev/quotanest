@@ -35,7 +35,7 @@ node scripts/build.js --dist
 
 ## Deploy
 
-`../.github/workflows/deploy-cloudflare.yml` tests, builds and deploys this folder to a Cloudflare Pages project named `quotanest` on pushes to `main`. The project must exist first (Cloudflare dashboard → Workers & Pages → Create → Pages → Direct Upload, name `quotanest`). Then set these variables on the project (Settings → Variables and Secrets):
+`.github/workflows/deploy-cloudflare.yml` tests, builds and deploys this folder to a Cloudflare Pages project named `quotanest` on pushes to `main`. The project must exist first (Cloudflare dashboard → Workers & Pages → Create → Pages → Direct Upload, name `quotanest`). Then set these variables on the project (Settings → Variables and Secrets):
 
 - `LEMONSQUEEZY_PRODUCT_ID`: pins licence keys to this product.
 - `LEMONSQUEEZY_DISABLED`: set to `1` to answer `configured: false`, which keeps the app open (the state before the product is on sale).
