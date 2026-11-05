@@ -7,12 +7,15 @@ Working name: the folder and the product name are not final. Check trademarks (K
 ## What it does
 
 - **Tokens**: heuristic token estimate with a ±30% range, calibrated against a number the user reads from their own tool.
-- **Compress**: rule-based cleanup (filler words, repeated lines, long stack traces, extra spaces). Code fences are never touched. Shows the token difference.
-- **Limits**: parses Claude Code JSONL and Codex JSONL (best effort) or a JSON array, or takes manual entries. Groups usage into 5-hour blocks and forecasts "at this pace, the limit in N hours". The limits are numbers the user types in. The app does not know or show official limits.
-- **Model guide**: task type → light, middle or heavy tier with an estimated saving. The table is dated and editable.
+- **Compress**: rule-based cleanup (filler words, repeated lines, long stack traces, extra spaces). Code fences are never touched. Shows the token difference. Optional token budget for the prompt shows what is left, or how far over it is.
+- **Limits**: parses Claude Code JSONL and Codex JSONL (best effort) or a JSON array, or takes manual entries. Groups usage into 5-hour blocks and forecasts "at this pace, the limit in N hours". Shows the time until the current block resets, a log of the last 10 blocks, a 7-day bar chart (inline SVG, per local day), and when the oldest counted record leaves the 7-day window. The limits are numbers the user types in. The app does not know or show official limits.
+- **Model guide**: task type → light, middle or heavy tier with an estimated saving. The table is dated and editable. A per-task cost estimate (prompt size × turns, minus the table saving, as a share of the block limit) sits under it. It is a rough estimate.
 - **CLAUDE.md / AGENTS.md check**: size, duplicate lines across both files, wordy lines, sections worth moving into separate imported files.
 - **Resume**: extracts goal, decisions, touched files, errors and open items with rules (no AI) and builds a continuation prompt.
-- **Tips**, **export / import JSON**, **delete all data**.
+- **Tips**: the eight token-saving habits as a checklist with progress. Checked items are saved on this device.
+- **Limit alerts and summary**: the current block shows a warning from 80% of the block limit and an error at 100%. A plain-text summary of the block and the last 7 days can be copied. The chart range (7, 14 or 28 days) is set in Limits. The 10 most recent records can be deleted one by one.
+- **Settings theme**: light, dark or follow the system. The choice is stored on this device only.
+- **Export / import JSON**: the export covers records, limits, calibration, the model table, habits and budget (not the licence). Import checks the file and drops bad rows; it replaces the data on this device and reloads the app. **Delete all data**.
 
 ## Layout
 
@@ -20,7 +23,7 @@ Working name: the folder and the product name are not final. Check trademarks (K
 - `privacy.html`, `terms.html`: legal pages, text in `i18n.js`.
 - `i18n.js`: all user-visible strings (five languages, same keys).
 - `config.js`: `siteUrl`, `checkoutUrl`, `price`. Change these before launch.
-- `app/`: the app. `core.js` is pure logic (no DOM, no network) and is unit-tested. `app.js` builds the UI with `textContent` only.
+- `app/`: the app. `core.js` is pure logic (no DOM, no network, no storage) and is unit-tested; it also holds the import check (`normalizeImport`). `app.js` builds the UI with `textContent` only.
 - `functions/api/license.js` + `lib/license-core.js`: Cloudflare Pages Function for the licence check (Lemon Squeezy License API). Same contract as the other apps in this repository.
 - `scripts/build.js`: writes `sitemap.xml` and `robots.txt`, and with `--dist` copies the public files to `dist/`.
 - `test/`: `core.test.js`, `license.test.js`.

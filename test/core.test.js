@@ -130,3 +130,103 @@ test('summarizeSession: pulls goal, decisions, files, errors and todos', () => {
   assert.match(prompt, /결정 사항/);
   assert.match(prompt, /src\/export\.js/);
 });
+
+const HOUR_MS = 60 * 60 * 1000;
+
+test('forecast: reset countdown, recent block log and week drop-out time', () => {
+  const start = Date.parse('2026-11-03T10:00:00Z');
+  const records = [{ ts: start, input: 1000, output: 0, cacheRead: 0, cacheWrite: 0 }];
+  const now = start + 2 * HOUR_MS;
+  const f = QN.forecast({ records, now, metric: 'io', blockLimit: 2000 });
+  assert.equal(f.active.resetsIn, 3 * HOUR_MS);
+  assert.equal(f.recent.length, 1);
+  assert.equal(f.recent[0].pct, 0.5);
+  assert.equal(f.week.freesAt, start + 7 * 24 * HOUR_MS);
+  const none = QN.forecast({ records: [], now, metric: 'io' });
+  assert.equal(none.week.freesAt, null);
+  assert.deepEqual(none.recent, []);
+});
+
+test('dailyUsage: buckets by local calendar day, oldest first, ignores records outside the window', () => {
+  const now = new Date(2026, 10, 3, 12).getTime();
+  const records = [
+    { ts: new Date(2026, 10, 3, 9).getTime(), input: 100, output: 0 },
+    { ts: new Date(2026, 10, 2, 23).getTime(), input: 200, output: 0 },
+    { ts: new Date(2026, 9, 20).getTime(), input: 999, output: 0 },
+  ];
+  const days = QN.dailyUsage({ records, now, metric: 'io', days: 7 });
+  assert.equal(days.length, 7);
+  assert.equal(days[6].used, 100);
+  assert.equal(days[5].used, 200);
+  assert.equal(days.reduce((s, d) => s + d.used, 0), 300);
+});
+
+test('taskCost: prompt times turns, minus the table saving, and share of the block limit', () => {
+  const c = QN.taskCost({ promptTokens: 1000, turns: 10, taskId: 'rename', blockLimit: 100000 });
+  assert.equal(c.raw, 10000);
+  assert.equal(c.after, 3000); // rename saves 70 percent
+  assert.equal(c.shareRaw, 0.1);
+  assert.equal(c.shareAfter, 0.03);
+  const h = QN.taskCost({ promptTokens: 500, turns: 0, taskId: 'design' }); // design saves 0; turns floor to 1
+  assert.equal(h.raw, 500);
+  assert.equal(h.after, 500);
+  assert.equal(h.shareRaw, null);
+  assert.equal(QN.taskCost({ promptTokens: 1, turns: 1, taskId: 'nope' }), null);
+});
+
+test('budgetCheck: left, over and pct; no budget means null', () => {
+  const over = QN.budgetCheck(1500, 1000);
+  assert.equal(over.over, true);
+  assert.equal(over.left, -500);
+  assert.equal(over.pct, 1.5);
+  const ok = QN.budgetCheck(500, 1000);
+  assert.equal(ok.over, false);
+  assert.equal(ok.left, 500);
+  assert.equal(QN.budgetCheck(500, 0), null);
+});
+
+test('habitProgress: counts only known habit ids', () => {
+  assert.equal(QN.HABIT_IDS.length, 8);
+  const p = QN.habitProgress(['tip_1', 'tip_3', 'zzz'], undefined);
+  assert.equal(p.done, 2);
+  assert.equal(p.total, 8);
+  assert.equal(p.pct, 0.25);
+  assert.equal(QN.habitProgress(undefined).done, 0);
+});
+
+test('normalizeImport: accepts a version 1 export, drops bad rows and invalid values', () => {
+  const r = QN.normalizeImport({
+    v: 1,
+    records: [{ ts: 1000, input: 5, output: 2 }, { ts: 'x' }, null],
+    limits: { block: 900, metric: 'weird' },
+    calib: [{ estimated: 10, actual: 12 }, { estimated: 0, actual: 3 }],
+    guide: { rename: { tier: 'mid', saving: 40 }, design: { tier: 'bogus', saving: 500 } },
+    habits: ['tip_1', 'tip_1', 'nope'],
+    budget: 2000,
+  }, 5000);
+  assert.equal(r.records.length, 1);
+  assert.equal(r.limits.block, 900);
+  assert.equal(r.limits.metric, 'io');
+  assert.equal(r.calib.length, 1);
+  assert.deepEqual(r.guide, { rename: { tier: 'mid', saving: 40 } });
+  assert.deepEqual(r.habits, ['tip_1']);
+  assert.equal(r.budget, 2000);
+  assert.equal(QN.normalizeImport({ v: 2, records: [] }), null);
+  assert.equal(QN.normalizeImport(null), null);
+});
+
+test('recentIndices: newest first, never more than the records there are', () => {
+  assert.deepEqual(QN.recentIndices([{}, {}, {}], 2), [2, 1]);
+  assert.deepEqual(QN.recentIndices([{}], 10), [0]);
+  assert.deepEqual(QN.recentIndices([], 10), []);
+  assert.deepEqual(QN.recentIndices([{}, {}], 0), []);
+  assert.deepEqual(QN.recentIndices([{}, {}], -3), []);
+});
+
+test('alertLevel: ok below 80 percent, near from 80, over from 100, null without a limit', () => {
+  assert.equal(QN.alertLevel(0.79), 'ok');
+  assert.equal(QN.alertLevel(0.8), 'near');
+  assert.equal(QN.alertLevel(1), 'over');
+  assert.equal(QN.alertLevel(null), null);
+  assert.equal(QN.alertLevel(NaN), null);
+});

@@ -213,12 +213,15 @@
       last.count++;
     });
 
-    var out = { blocks: blocks.length, active: null, week: null };
+    var out = { blocks: blocks.length, active: null, week: null, recent: [] };
+    out.recent = blocks.slice(-10).reverse().map(function (b) {
+      return { start: b.start, end: b.end, used: b.used, count: b.count, pct: opts.blockLimit > 0 ? b.used / opts.blockLimit : null };
+    });
     var cur = blocks[blocks.length - 1];
     if (cur && now >= cur.start && now < cur.end) {
       var elapsed = Math.max(now - cur.start, HOUR / 4);
       var rate = cur.used / (elapsed / HOUR);
-      var a = { start: cur.start, end: cur.end, used: cur.used, rate: rate, pct: null, hoursToLimit: null, etaTs: null, hitsBeforeReset: false };
+      var a = { start: cur.start, end: cur.end, used: cur.used, rate: rate, pct: null, hoursToLimit: null, etaTs: null, hitsBeforeReset: false, resetsIn: cur.end - now };
       if (opts.blockLimit > 0) {
         a.pct = cur.used / opts.blockLimit;
         var remaining = opts.blockLimit - cur.used;
@@ -232,18 +235,20 @@
       out.active = a;
     }
 
-    var weekFrom = now - WEEK_MS, weekUsed = 0, earliest = now;
+    var weekFrom = now - WEEK_MS, weekUsed = 0, earliest = null;
     recs.forEach(function (r) {
       if (r.ts >= weekFrom && r.ts <= now) {
         weekUsed += tokensOf(r, metric);
-        if (r.ts < earliest) earliest = r.ts;
+        if (earliest === null || r.ts < earliest) earliest = r.ts;
       }
     });
-    var spanDays = Math.min(7, Math.max((now - earliest) / (24 * HOUR), 1));
+    var spanDays = earliest === null ? 1 : Math.min(7, Math.max((now - earliest) / (24 * HOUR), 1));
     out.week = {
       used: weekUsed,
       pct: opts.weekLimit > 0 ? weekUsed / opts.weekLimit : null,
-      perDay: weekUsed / spanDays
+      perDay: weekUsed / spanDays,
+      // When the oldest counted record leaves the 7-day window, usage drops by its tokens.
+      freesAt: earliest === null ? null : earliest + WEEK_MS
     };
     return out;
   }
@@ -269,6 +274,117 @@
     var tier = o.tier === 'light' || o.tier === 'mid' || o.tier === 'heavy' ? o.tier : base.tier;
     var saving = o.saving >= 0 && o.saving <= 100 ? Number(o.saving) : base.saving;
     return { id: base.id, tier: tier, saving: saving, asOf: GUIDE_ASOF };
+  }
+
+  /* ---------- daily history, task cost, budget, habits, import check ---------- */
+
+  var HABIT_IDS = ['tip_1', 'tip_2', 'tip_3', 'tip_4', 'tip_5', 'tip_6', 'tip_7', 'tip_8'];
+
+  /* Totals per local calendar day, oldest first. opts: { records, now, metric, days } */
+  function dailyUsage(opts) {
+    var metric = opts.metric || 'io';
+    var days = Math.min(31, Math.max(1, Math.round(num(opts.days) || 7)));
+    var base = new Date(opts.now);
+    var buckets = [], i, j;
+    for (i = days - 1; i >= 0; i--) {
+      buckets.push({
+        start: new Date(base.getFullYear(), base.getMonth(), base.getDate() - i).getTime(),
+        end: new Date(base.getFullYear(), base.getMonth(), base.getDate() - i + 1).getTime(),
+        used: 0
+      });
+    }
+    (opts.records || []).forEach(function (r) {
+      for (j = 0; j < buckets.length; j++) {
+        if (r.ts >= buckets[j].start && r.ts < buckets[j].end) { buckets[j].used += tokensOf(r, metric); return; }
+      }
+    });
+    return buckets;
+  }
+
+  /* Rough per-task cost: prompt size times turns (each turn re-sends the context), minus the saving from the model table.
+     opts: { promptTokens, turns, taskId, overrides, blockLimit }. Share values are null when no block limit is set. */
+  function taskCost(opts) {
+    var g = modelGuide(opts.taskId, opts.overrides);
+    if (!g) return null;
+    var turns = Math.max(1, Math.round(num(opts.turns) || 1));
+    var raw = Math.round(num(opts.promptTokens) * turns);
+    var after = Math.round(raw * (1 - g.saving / 100));
+    var limit = num(opts.blockLimit);
+    return {
+      tier: g.tier,
+      saving: g.saving,
+      raw: raw,
+      after: after,
+      shareRaw: limit > 0 ? raw / limit : null,
+      shareAfter: limit > 0 ? after / limit : null
+    };
+  }
+
+  /* Compares a token count with a user budget. Returns null when no budget is set. */
+  function budgetCheck(tokens, budget) {
+    var b = num(budget);
+    if (!(b > 0)) return null;
+    var used = Math.max(0, Number(tokens) || 0);
+    return { used: used, budget: b, left: b - used, pct: used / b, over: used > b };
+  }
+
+  /* done: array of checked habit ids. ids: all habit ids (defaults to HABIT_IDS). */
+  function habitProgress(done, ids) {
+    var all = ids || HABIT_IDS, list = Array.isArray(done) ? done : [];
+    var count = all.filter(function (id) { return list.indexOf(id) >= 0; }).length;
+    return { done: count, total: all.length, pct: all.length ? count / all.length : 0 };
+  }
+
+  /* Checks a parsed export (version 1) and returns clean data, or null when it is not a Quotanest export.
+     Bad rows are dropped rather than failing the whole file. */
+  function normalizeImport(obj, maxRecords) {
+    if (!obj || typeof obj !== 'object' || obj.v !== 1 || !Array.isArray(obj.records)) return null;
+    var max = maxRecords > 0 ? maxRecords : 5000;
+    var records = [];
+    obj.records.forEach(function (r) {
+      var n = r && typeof r === 'object' && typeof r.ts === 'number' ? normalizeRecord(r) : null;
+      if (n) records.push(n);
+    });
+    records.sort(function (a, b) { return a.ts - b.ts; });
+    records = records.slice(-max);
+
+    var lim = obj.limits && typeof obj.limits === 'object' ? obj.limits : {};
+    var limits = { block: num(lim.block), week: num(lim.week), metric: lim.metric === 'all' ? 'all' : 'io' };
+
+    var calib = Array.isArray(obj.calib) ? obj.calib.filter(function (p) {
+      return p && num(p.estimated) > 0 && num(p.actual) > 0;
+    }).slice(-20).map(function (p) { return { estimated: Number(p.estimated), actual: Number(p.actual) }; }) : [];
+
+    var guide = {};
+    var src = obj.guide && typeof obj.guide === 'object' ? obj.guide : {};
+    TASKS.forEach(function (x) {
+      var g = src[x.id];
+      if (!g || typeof g !== 'object') return;
+      var o = {};
+      if (g.tier === 'light' || g.tier === 'mid' || g.tier === 'heavy') o.tier = g.tier;
+      if (typeof g.saving === 'number' && g.saving >= 0 && g.saving <= 100) o.saving = g.saving;
+      if (Object.keys(o).length) guide[x.id] = o;
+    });
+
+    var habits = Array.isArray(obj.habits) ? obj.habits.filter(function (h, i, all) {
+      return HABIT_IDS.indexOf(h) >= 0 && all.indexOf(h) === i;
+    }) : [];
+
+    return { records: records, limits: limits, calib: calib, guide: guide, habits: habits, budget: num(obj.budget) };
+  }
+
+  /* Warning level for a share of a limit (0..1+). Returns null when there is no share to judge. */
+  function alertLevel(share) {
+    if (share == null || !isFinite(share)) return null;
+    return share >= 1 ? 'over' : share >= 0.8 ? 'near' : 'ok';
+  }
+
+  /* Indices of the newest n records, newest first. The app keeps records sorted oldest first. */
+  function recentIndices(records, n) {
+    var list = records || [], out = [];
+    var count = Math.min(list.length, Math.max(0, Math.floor(Number(n)) || 0));
+    for (var i = list.length - 1; out.length < count; i--) out.push(i);
+    return out;
   }
 
   /* ---------- CLAUDE.md / AGENTS.md checks ---------- */
@@ -375,7 +491,15 @@
     GUIDE_ASOF: GUIDE_ASOF,
     analyzeInstructions: analyzeInstructions,
     summarizeSession: summarizeSession,
-    buildResumePrompt: buildResumePrompt
+    buildResumePrompt: buildResumePrompt,
+    dailyUsage: dailyUsage,
+    taskCost: taskCost,
+    budgetCheck: budgetCheck,
+    habitProgress: habitProgress,
+    normalizeImport: normalizeImport,
+    HABIT_IDS: HABIT_IDS,
+    recentIndices: recentIndices,
+    alertLevel: alertLevel
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
