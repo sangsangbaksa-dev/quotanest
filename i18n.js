@@ -347,3 +347,20 @@ window.QN_I18N = {
     terms_body: 'Quotanest es una herramienta de pago único, que se ofrece tal cual.\n\nSolo llama a un servicio de IA cuando añades tu propia clave de API y pulsas el botón de IA. No inicia sesión en tus cuentas de IA y no lee credenciales. Los recuentos de tokens son estimaciones. Los límites son números que introduces tú; no son cifras oficiales de ningún proveedor.\n\nQuotanest no está afiliado, respaldado ni patrocinado por Anthropic, OpenAI ni por ninguna otra empresa. Los nombres de productos se usan solo para describir la compatibilidad.\n\nLos reembolsos siguen la política del proveedor de pagos.'
   }
 };
+
+/* Site header and footer strings (added with the site-style pass). */
+(function () {
+  var add = {
+    en: { app_tagline: 'Use less of your AI coding limit, with token and limit tools that run in your browser.', app_footer_privacy: 'Runs in your browser. Your data stays on this device.' },
+    ko: { app_tagline: 'AI 코딩 한도를 덜 쓰도록, 브라우저 안에서 토큰과 한도를 확인하세요.', app_footer_privacy: '브라우저 안에서 실행됩니다. 데이터는 이 기기에만 남습니다.' },
+    ja: { app_tagline: 'AIコーディングの上限を節約。ブラウザ内でトークンと上限を確認できます。', app_footer_privacy: 'ブラウザ内で動作します。データはこの端末に残ります。' },
+    zh: { app_tagline: '节省 AI 编程额度：在浏览器中查看令牌与限额。', app_footer_privacy: '在浏览器中运行。数据只保存在本设备上。' },
+    es: { app_tagline: 'Usa menos de tu límite de programación con IA, con herramientas que corren en tu navegador.', app_footer_privacy: 'Se ejecuta en tu navegador. Tus datos se quedan en este dispositivo.' }
+  };
+  Object.keys(add).forEach(function (l) { Object.assign(window.QN_I18N[l], add[l]); });
+})();
+
+(function () {
+  var c = { en: '© 2026 Quotanest', ko: '© 2026 Quotanest', ja: '© 2026 Quotanest', zh: '© 2026 Quotanest', es: '© 2026 Quotanest' };
+  Object.keys(c).forEach(function (l) { window.QN_I18N[l].foot_copy = c[l]; });
+})();

@@ -1120,6 +1120,24 @@
   var FACTORY = {};
   tabs.forEach(function (x) { FACTORY[x[0]] = x[2]; });
 
+  /* Logo mark: a constant SVG built with DOM calls (no user data). */
+  function markSvg() {
+    var NS = 'http://www.w3.org/2000/svg';
+    var s = document.createElementNS(NS, 'svg');
+    s.setAttribute('class', 'mark'); s.setAttribute('viewBox', '0 0 64 64'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false');
+    function add(tag, attrs, cls) {
+      var n = document.createElementNS(NS, tag);
+      Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+      if (cls) n.setAttribute('class', cls);
+      s.appendChild(n);
+    }
+    add('rect', { width: 64, height: 64, rx: 14 }, 'm-bg');
+    add('rect', { x: 14, y: 18, width: 36, height: 6, rx: 3 }, 'm-bar');
+    add('rect', { x: 14, y: 30, width: 22, height: 6, rx: 3, opacity: 0.55 }, 'm-bar');
+    add('rect', { x: 14, y: 42, width: 30, height: 6, rx: 3, opacity: 0.85 }, 'm-bar');
+    return s;
+  }
+
   function build() {
     var root = document.getElementById('root');
     var nav = el('nav', { cls: 'tabs', role: 'tablist' });
@@ -1145,7 +1163,13 @@
     });
     root.replaceChildren(
       el('header', { cls: 'top' }, [
-        el('p', { cls: 'brand', t: 'brand' }),
+        el('a', { cls: 'brand', href: '/' }, [
+          markSvg(),
+          el('span', { cls: 'brand-text' }, [
+            el('span', { cls: 'brand-name', t: 'brand' }),
+            el('span', { cls: 'brand-tag', t: 'app_tagline' })
+          ])
+        ]),
         el('span', { cls: 'hdr-links' }, [
           el('a', { href: '/privacy.html', t: 'nav_privacy' }), ' ',
           el('a', { href: '/terms.html', t: 'nav_terms' })
@@ -1153,7 +1177,19 @@
       ]),
       nav,
       main,
-      el('div', { cls: 'gate-slot' })
+      el('div', { cls: 'gate-slot' }),
+      el('footer', { cls: 'site-foot' }, [
+        el('div', { cls: 'foot-brand' }, [
+          el('a', { cls: 'brand', href: '/' }, [markSvg(), el('span', { cls: 'brand-name', t: 'brand' })]),
+          el('p', { cls: 'foot-desc', t: 'footer_note' }),
+          el('p', { cls: 'foot-desc', t: 'app_footer_privacy' })
+        ]),
+        el('nav', { cls: 'foot-nav', 'aria-label': 'Legal' }, [
+          el('a', { href: '/privacy.html', t: 'nav_privacy' }),
+          el('a', { href: '/terms.html', t: 'nav_terms' })
+        ]),
+        el('p', { cls: 'foot-copy', t: 'foot_copy' })
+      ])
     );
     gate = buildGate();
     document.body.appendChild(gate);

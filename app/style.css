@@ -1,10 +1,10 @@
 /* Quotanest app styles. Colours are tokens on :root; dark values repeat under both dark selectors. */
 :root {
-  --bg: #f5f6f8; --panel: #ffffff; --sunken: #f8f9fb; --ink: #14171c; --muted: #545c69;
+  --bg: #F8FAFC; --panel: #ffffff; --sunken: #f8f9fb; --ink: #0A1628; --muted: #545c69;
   --line: #d9dde3; --line-strong: #b9c0ca;
-  --accent: #1d4ed8; --accent-hover: #1a43c0; --accent-ink: #ffffff;
-  --warn: #9a4a06; --bad: #b42318; --on-bad: #ffffff; --good: #15803d; --chip: #eef2ff;
-  --focus: #1d4ed8;
+  --accent: #0B6E4F; --accent-hover: #064D36; --accent-ink: #ffffff;
+  --warn: #9a4a06; --bad: #b42318; --on-bad: #ffffff; --good: #15803d; --chip: #e7f3ee;
+  --focus: #0B6E4F;
   --radius: 14px; --radius-sm: 10px; --gutter: 16px; --tap: 44px;
   --shadow: 0 1px 2px rgba(20, 23, 28, 0.04), 0 4px 16px rgba(20, 23, 28, 0.04);
 }
@@ -12,15 +12,15 @@
   :root:not([data-theme="light"]) {
     --bg: #0e1115; --panel: #161a20; --sunken: #0e1115; --ink: #e8ebf0; --muted: #a7b0bd;
     --line: #2c333d; --line-strong: #404856;
-    --accent: #6f93ff; --accent-hover: #8aa6ff; --accent-ink: #0b1020; --warn: #fcd34d; --bad: #f87171; --on-bad: #0b1020; --good: #4ade80; --chip: #1b2640;
-    --focus: #8aa6ff; --shadow: none;
+    --accent: #5ad3a4; --accent-hover: #7fe0b8; --accent-ink: #06231a; --warn: #fcd34d; --bad: #f87171; --on-bad: #06231a; --good: #4ade80; --chip: #133228;
+    --focus: #7fe0b8; --shadow: none;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e1115; --panel: #161a20; --sunken: #0e1115; --ink: #e8ebf0; --muted: #a7b0bd;
   --line: #2c333d; --line-strong: #404856;
-  --accent: #6f93ff; --accent-hover: #8aa6ff; --accent-ink: #0b1020; --warn: #fcd34d; --bad: #f87171; --on-bad: #0b1020; --good: #4ade80; --chip: #1b2640;
-  --focus: #8aa6ff; --shadow: none;
+  --accent: #5ad3a4; --accent-hover: #7fe0b8; --accent-ink: #06231a; --warn: #fcd34d; --bad: #f87171; --on-bad: #06231a; --good: #4ade80; --chip: #133228;
+  --focus: #7fe0b8; --shadow: none;
 }
 /* Native controls (select, checkbox, progress, file input) follow the same light or dark choice as the tokens. */
 :root { color-scheme: light; }
@@ -32,7 +32,21 @@ body { background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -app
 
 /* Header */
 header.top { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding: 8px var(--gutter); border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; }
-header.top .brand { font-weight: 800; letter-spacing: -0.02em; margin: 0; font-size: 18px; display: inline-flex; align-items: center; min-height: var(--tap); }
+header.top .brand { font-weight: 800; letter-spacing: -0.02em; margin: 0; font-size: 18px; display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap); color: var(--ink); text-decoration: none; }
+header.top .brand-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+header.top .brand-tag { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; max-width: 52ch; }
+.mark { width: 30px; height: 30px; flex: none; display: block; }
+.mark .m-bg { fill: var(--accent); }
+.mark .m-bar { fill: var(--accent-ink); }
+.site-foot { max-width: 760px; margin: 0 auto; padding: 24px var(--gutter) 36px; border-top: 1px solid var(--line); display: grid; gap: 14px 24px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 720px) { .site-foot { grid-template-columns: minmax(0, 1fr) auto; } .site-foot .foot-copy { grid-column: 1 / -1; } }
+.foot-brand { display: grid; gap: 6px; min-width: 0; }
+.foot-brand .brand { min-height: 0; font-size: 16px; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; font-weight: 800; }
+.foot-desc { margin: 0; font-size: 14px; color: var(--muted); max-width: 60ch; }
+.foot-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.foot-nav a { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 12px; border-radius: var(--radius-sm); color: var(--muted); text-decoration: none; font-size: 14px; }
+.foot-nav a:hover { color: var(--ink); background: var(--chip); }
+.foot-copy { margin: 0; font-size: 13px; color: var(--muted); }
 header.top a { color: var(--muted); font-size: 14px; display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 6px; }
 header.top a:hover { color: var(--ink); }
 
@@ -66,8 +80,8 @@ textarea:focus, input:focus, select:focus { outline: 2px solid var(--focus); out
 .row > * { flex: 1 1 140px; }
 
 /* Buttons */
-button.btn, a.btn { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 0 18px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center; transition: background-color .15s, border-color .15s; }
-button.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+button.btn, a.btn { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 0 18px; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center; transition: transform .15s ease, opacity .15s ease; }
+button.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 2px 8px rgba(11, 110, 79, 0.18); }
 button.btn:active { transform: translateY(1px); }
 button.btn:disabled { opacity: .5; cursor: default; transform: none; }
 button.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); font-weight: 600; }
@@ -129,9 +143,16 @@ ul.rec li:last-child { border-bottom: 0; }
 ul.rec li > span { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
 .note.warn { color: var(--warn); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } button.btn { transition: none; } }
+@media (max-width: 540px) { header.top .brand-tag { display: none; } }
 @media (max-width: 420px) {
   header.top .brand { font-size: 17px; }
   .stats { grid-template-columns: 1fr 1fr; }
   .card { padding: 14px; }
   .row > * { flex: 1 1 100%; }
 }
+
+/* Site pattern pass: serif display font for the app name and section headings, larger radii on cards. */
+:root { --display: Georgia, "Times New Roman", "Nanum Myeongjo", "Batang", serif; }
+h2 { font-family: var(--display); font-weight: 700; }
+.card { border-radius: 1.25rem; }
+.site-foot .foot-brand .brand-name { font-family: var(--display); font-weight: 700; }
