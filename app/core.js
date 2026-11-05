@@ -198,9 +198,16 @@
 
   /* opts: { records, now, metric: 'io' | 'all', blockLimit, weekLimit }
      Blocks are 5 hours long and start at the hour of their first record (same idea as ccusage). */
-  function forecast(opts) {
-    var now = opts.now, metric = opts.metric || 'io';
-    var recs = (opts.records || []).slice().sort(function (a, b) { return a.ts - b.ts; });
+  /* Records sorted oldest first, copied and sorted only when needed (the app keeps them sorted). */
+  function sortedRecords(list) {
+    var recs = list || [];
+    for (var s = 1; s < recs.length; s++) {
+      if (recs[s - 1].ts > recs[s].ts) return recs.slice().sort(function (a, b) { return a.ts - b.ts; });
+    }
+    return recs;
+  }
+
+  function buildBlocks(recs, metric) {
     var blocks = [];
     recs.forEach(function (r) {
       var last = blocks[blocks.length - 1];
@@ -212,6 +219,13 @@
       last.used += tokensOf(r, metric);
       last.count++;
     });
+    return blocks;
+  }
+
+  function forecast(opts) {
+    var now = opts.now, metric = opts.metric || 'io';
+    var recs = sortedRecords(opts.records);
+    var blocks = buildBlocks(recs, metric);
 
     var out = { blocks: blocks.length, active: null, week: null, recent: [] };
     out.recent = blocks.slice(-10).reverse().map(function (b) {
@@ -251,6 +265,156 @@
       freesAt: earliest === null ? null : earliest + WEEK_MS
     };
     return out;
+  }
+
+  /* ---------- AI analysis: local summary, local advice, prompt and reply parsing (no network here) ---------- */
+
+  var AI_MODEL = 'claude-haiku-5-5';
+  var AI_LANG_NAMES = { en: 'English', ko: 'Korean', ja: 'Japanese', zh: 'Simplified Chinese', es: 'Spanish' };
+
+  function percentile(sorted, p) {
+    if (!sorted.length) return 0;
+    return sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1))];
+  }
+
+  /* History numbers for the last 28 days, independent of the user's limits (so the app can cache them).
+     opts: { records, now, metric }. Nothing here is an official value. */
+  function usageHistory(opts) {
+    var now = opts.now, metric = opts.metric || 'io';
+    var from = now - 28 * 24 * HOUR;
+    var recs = sortedRecords(opts.records).filter(function (r) { return r.ts >= from && r.ts <= now; });
+    var weekly = [0, 0, 0, 0];
+    recs.forEach(function (r) {
+      var idx = Math.floor((now - r.ts) / WEEK_MS);
+      if (idx < 4) weekly[idx] += tokensOf(r, metric);
+    });
+    var days = dailyUsage({ records: recs, now: now, metric: metric, days: 28 });
+    var blockTotals = buildBlocks(recs, metric).map(function (b) { return b.used; });
+    var sorted = blockTotals.slice().sort(function (a, b) { return a - b; });
+    return {
+      hasData: recs.length > 0,
+      records: recs.length,
+      activeDays: days.filter(function (d) { return d.used > 0; }).length,
+      weekly: weekly,
+      last7: weekly[0],
+      prev7: weekly[1],
+      trendPct: weekly[1] > 0 ? (weekly[0] - weekly[1]) / weekly[1] : null,
+      blockTotals: blockTotals,
+      blocks: blockTotals.length,
+      blockMedian: percentile(sorted, 0.5),
+      blockP90: percentile(sorted, 0.9),
+      blockMax: sorted.length ? sorted[sorted.length - 1] : 0,
+      metric: metric
+    };
+  }
+
+  /* Adds the user's limits to a history. Cheap, so it can run on every keystroke in a limit field. */
+  function withLimits(history, blockLimit, weekLimit) {
+    var bl = num(blockLimit), wl = num(weekLimit);
+    var out = {};
+    Object.keys(history).forEach(function (k) { if (k !== 'blockTotals') out[k] = history[k]; });
+    out.blockLimit = bl;
+    out.weekLimit = wl;
+    out.nearBlocks = bl > 0 ? history.blockTotals.filter(function (u) { return u / bl >= 0.8; }).length : null;
+    return out;
+  }
+
+  function usageSummary(opts) {
+    return withLimits(usageHistory(opts), opts.blockLimit, opts.weekLimit);
+  }
+
+  function ceilTo(n, step) { return Math.ceil(n / step) * step; }
+
+  /* Suggested limits for next month, from the user's own history: 90th percentile block with 10% headroom,
+     and the busiest of the last four weeks with 10% headroom. Null when there is no history to judge. */
+  function suggestLimits(summary) {
+    if (!summary || !summary.hasData) return null;
+    var out = { block: null, week: null };
+    if (summary.blockP90 > 0) out.block = ceilTo(summary.blockP90 * 1.1, 1000);
+    var wk = Math.max.apply(null, summary.weekly);
+    if (wk > 0) out.week = ceilTo(wk * 1.1, 1000);
+    return out.block || out.week ? out : null;
+  }
+
+  /* Deterministic local explanation, used when there is no key or the request fails. Returns ids and numbers;
+     the app turns them into text in the user's language. */
+  function localAdvice(summary, suggestion) {
+    var out = [];
+    if (!summary || !summary.hasData) return [{ id: 'none' }];
+    if (summary.trendPct == null) out.push({ id: 'trend_none' });
+    else if (summary.trendPct >= 0.1) out.push({ id: 'trend_up', p: Math.round(summary.trendPct * 100) });
+    else if (summary.trendPct <= -0.1) out.push({ id: 'trend_down', p: Math.round(-summary.trendPct * 100) });
+    else out.push({ id: 'trend_flat' });
+    if (summary.nearBlocks == null) out.push({ id: 'no_limit' });
+    else if (summary.nearBlocks > 0) out.push({ id: 'near', n: summary.nearBlocks });
+    else out.push({ id: 'near_none' });
+    if (suggestion) out.push({ id: 'suggest', block: suggestion.block, week: suggestion.week });
+    else out.push({ id: 'suggest_none' });
+    return out;
+  }
+
+  /* Removes control characters, collapses blank runs and caps the length. Applied to any text that goes into a prompt. */
+  function sanitizeText(s, max) {
+    var t = String(s == null ? '' : s)
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    return t.slice(0, max > 0 ? max : 500);
+  }
+
+  /* Builds the system and user text from numbers only (no logs, no file names, no free text). */
+  function buildUsagePrompt(summary, suggestion, lang) {
+    var name = AI_LANG_NAMES[lang] || 'English';
+    var fmtN = function (n) { return String(Math.round(n || 0)); };
+    var lines = [
+      'Reply in ' + name + '.',
+      'Metric: ' + (summary.metric === 'all' ? 'input, output and cache tokens' : 'input and output tokens (no cache)') + '.',
+      'Records in the last 28 days: ' + fmtN(summary.records) + '; active days: ' + summary.activeDays + ' of 28.',
+      'Last 7 days: ' + fmtN(summary.last7) + ' tokens; the 7 days before: ' + fmtN(summary.prev7) +
+        (summary.trendPct == null ? ' (no comparison).' : ' (change ' + (summary.trendPct >= 0 ? '+' : '') + Math.round(summary.trendPct * 100) + '%).'),
+      'Weekly totals, newest first: ' + summary.weekly.map(fmtN).join(', ') + '.',
+      '5-hour blocks: ' + summary.blocks + ' (median ' + fmtN(summary.blockMedian) + ', 90th percentile ' + fmtN(summary.blockP90) + ', largest ' + fmtN(summary.blockMax) + ').',
+      summary.blockLimit > 0
+        ? 'Block limit typed by the user: ' + fmtN(summary.blockLimit) + ' tokens; blocks at 80% or more: ' + (summary.nearBlocks || 0) + '.'
+        : 'Block limit: not set.',
+      summary.weekLimit > 0 ? 'Week limit typed by the user: ' + fmtN(summary.weekLimit) + ' tokens.' : 'Week limit: not set.',
+      suggestion
+        ? 'Local suggestion from the history: block ' + fmtN(suggestion.block) + ', week ' + fmtN(suggestion.week) + '.'
+        : 'Local suggestion: none (not enough history).'
+    ];
+    return {
+      system: 'You explain token usage numbers from an AI coding tool to one developer. Use only the numbers given. ' +
+        'Do not state official limits. Keep the answer under 120 words in plain sentences: first the trend, then the limit hits, ' +
+        'then one final line that starts with "Suggested next month:" and gives a block limit and a weekly limit in tokens, and says these are estimates from their own history.',
+      user: lines.join('\n')
+    };
+  }
+
+  function buildAiRequest(prompt) {
+    return {
+      model: AI_MODEL,
+      max_tokens: 500,
+      system: prompt.system,
+      messages: [{ role: 'user', content: prompt.user }]
+    };
+  }
+
+  /* Accepts a Messages API response object and returns its text. Throws on an error object or empty text. */
+  function parseAiReply(obj) {
+    if (!obj || typeof obj !== 'object') throw new Error('bad reply');
+    if (obj.type === 'error') throw new Error('api error');
+    var parts = Array.isArray(obj.content) ? obj.content : [];
+    var text = parts.filter(function (p) { return p && p.type === 'text' && typeof p.text === 'string'; })
+      .map(function (p) { return p.text; }).join('\n').trim();
+    if (!text) throw new Error('empty reply');
+    return text.slice(0, 4000);
+  }
+
+  /* A plausible API key: printable ASCII without spaces, a sensible length. Only a shape check, never a network call. */
+  function isPlausibleKey(k) {
+    var s = String(k == null ? '' : k).trim();
+    return s.length >= 20 && s.length <= 300 && /^[\x21-\x7e]+$/.test(s);
   }
 
   /* ---------- model guide (editable defaults, dated) ---------- */
@@ -499,7 +663,18 @@
     normalizeImport: normalizeImport,
     HABIT_IDS: HABIT_IDS,
     recentIndices: recentIndices,
-    alertLevel: alertLevel
+    alertLevel: alertLevel,
+    usageSummary: usageSummary,
+    usageHistory: usageHistory,
+    withLimits: withLimits,
+    suggestLimits: suggestLimits,
+    localAdvice: localAdvice,
+    sanitizeText: sanitizeText,
+    buildUsagePrompt: buildUsagePrompt,
+    buildAiRequest: buildAiRequest,
+    parseAiReply: parseAiReply,
+    isPlausibleKey: isPlausibleKey,
+    AI_MODEL: AI_MODEL
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

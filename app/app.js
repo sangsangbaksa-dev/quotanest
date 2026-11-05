@@ -4,6 +4,8 @@
 
   var I18N = window.QN_I18N, SITE = window.QN_SITE || {}, QN = window.QN;
   var KEY = 'quotanest.v1';
+  var KEY_RECS = 'quotanest.v1.records';
+  var savedRecRev = -1;
   var LANGS = ['en', 'ko', 'ja', 'zh', 'es'];
   var THEMES = ['system', 'light', 'dark'];
   var RANGES = [7, 14, 28];
@@ -12,6 +14,7 @@
   var MAX_RECORDS = 5000;
   var refreshers = [];
   var tickers = [];
+  var recRev = 0; /* bumped whenever state.records changes, so the record list knows when to redraw */
   var gate = null;
   var gateVisible = false;
 
@@ -34,10 +37,13 @@
       if (!raw) return d;
       var s = JSON.parse(raw);
       if (!s || typeof s !== 'object') return d;
+      // Records live under their own key (written only when they change). Older saves kept them inside KEY.
+      var recs = s.records;
+      try { var rr = localStorage.getItem(KEY_RECS); if (rr != null) recs = JSON.parse(rr); } catch (e) { /* keep the older copy */ }
       d.lang = LANGS.indexOf(s.lang) >= 0 ? s.lang : d.lang;
       // Stored data is checked the same way as an import, so bad rows or values cannot reach the forecast.
       var clean = QN.normalizeImport({
-        v: 1, records: Array.isArray(s.records) ? s.records : [], limits: s.limits, calib: s.calib,
+        v: 1, records: Array.isArray(recs) ? recs : [], limits: s.limits, calib: s.calib,
         guide: s.guide, habits: s.habits, budget: s.budget
       }, MAX_RECORDS);
       if (clean) {
@@ -52,9 +58,32 @@
   }
   var state = load();
 
+  /* Writes the state now. The records (up to 5000) are written only after they changed (recRev), so
+     toggling a habit or typing a limit does not re-serialise them. Records are written first, so a failed
+     write never leaves the settings pointing at records that were not saved. */
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); return true; } catch (e) { toast(t('toast_fail')); return false; }
+    clearTimeout(saveTimer); saveTimer = null;
+    try {
+      if (savedRecRev !== recRev) {
+        localStorage.setItem(KEY_RECS, JSON.stringify(state.records));
+        savedRecRev = recRev;
+      }
+      var rest = Object.assign({}, state);
+      delete rest.records;
+      localStorage.setItem(KEY, JSON.stringify(rest));
+      return true;
+    } catch (e) { toast(t('toast_fail')); return false; }
   }
+  /* Keystroke-driven fields (limits, budget) only schedule a write, so typing does not serialise the whole state per key.
+     The pending write is flushed when the page is hidden or closed. */
+  var saveTimer = null;
+  function saveSoon() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { saveTimer = null; save(); }, 400);
+  }
+  function flushSave() { if (saveTimer) save(); }
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSave(); });
 
   /* ---------- helpers ---------- */
 
@@ -63,20 +92,31 @@
     if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(String(vars[k])); });
     return s;
   }
-  function fmt(n) { return Math.round(n || 0).toLocaleString(LOCALE[state.lang] || 'en-US'); }
+  /* Intl formatters are costly to create and the same few are used on every redraw, so they are cached per language. */
+  var formatters = {};
+  function formatter(kind, opts) {
+    var key = state.lang + '|' + kind;
+    if (!formatters[key]) {
+      formatters[key] = kind === 'n'
+        ? new Intl.NumberFormat(LOCALE[state.lang] || 'en-US')
+        : new Intl.DateTimeFormat(LOCALE[state.lang] || 'en-US', opts);
+    }
+    return formatters[key];
+  }
+  function fmt(n) { return formatter('n').format(Math.round(n || 0)); }
   function pct(x) { return x == null ? '–' : Math.round(x * 100) + '%'; }
   function durText(ms) {
     var m = Math.max(0, Math.round(ms / 60000));
     return t('dur_hm', { h: Math.floor(m / 60), m: m % 60 });
   }
   function fmtWhen(ts) {
-    return new Date(ts).toLocaleString(LOCALE[state.lang] || 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return formatter('when', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(ts));
   }
   function fmtDay(ts) {
-    return new Date(ts).toLocaleDateString(LOCALE[state.lang] || 'en-US', { weekday: 'short' });
+    return formatter('day', { weekday: 'short' }).format(new Date(ts));
   }
   function fmtDate(ts) {
-    return new Date(ts).toLocaleDateString(LOCALE[state.lang] || 'en-US', { month: 'short', day: 'numeric' });
+    return formatter('date', { month: 'short', day: 'numeric' }).format(new Date(ts));
   }
   /* Plain-text summary of the current block and the last 7 days, for copying. */
   function summaryText(f) {
@@ -144,6 +184,14 @@
     });
     return svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': t('use_chart_label', { n: days.length }), class: 'chart' }, parts);
   }
+
+  /* ---------- AI key (optional, this device only) ---------- */
+
+  var AI_KEY = 'quotanest-ai-key';
+  var AI_URL = 'https://api.anthropic.com/v1/messages';
+  function aiKeyGet() { try { return localStorage.getItem(AI_KEY) || ''; } catch (e) { return ''; } }
+  function aiKeySet(k) { try { localStorage.setItem(AI_KEY, k); return true; } catch (e) { return false; } }
+  function aiKeyClear() { try { localStorage.removeItem(AI_KEY); } catch (e) { /* storage blocked: nothing to remove */ } }
 
   var toastTimer = null;
   function toast(msg) {
@@ -300,7 +348,7 @@
     }
     budgetIn.addEventListener('input', function () {
       state.budget = Number(budgetIn.value) > 0 ? Number(budgetIn.value) : 0;
-      save(); drawBudget();
+      saveSoon(); drawBudget();
     });
     refreshers.push(function () { if (last) run(true); });
 
@@ -346,14 +394,131 @@
     rangeSel.value = String(state.chartDays);
     rangeSel.addEventListener('change', function () {
       state.chartDays = RANGES.indexOf(Number(rangeSel.value)) >= 0 ? Number(rangeSel.value) : 7;
-      save(); refreshAll();
+      save(); draw();
     });
     refreshers.push(function () {
       Array.prototype.forEach.call(rangeSel.options, function (o, i) { o.textContent = t('range_days', { n: RANGES[i] }); });
     });
 
+    /* ---- AI analysis card. The local summary is always shown and is computed on this device.
+       The model is asked only when the user has saved a key AND presses the button. ---- */
+    function aiLine(a) {
+      switch (a.id) {
+        case 'none': return t('ai_none');
+        case 'trend_up': return t('ai_trend_up', { p: a.p });
+        case 'trend_down': return t('ai_trend_down', { p: a.p });
+        case 'trend_flat': return t('ai_trend_flat');
+        case 'trend_none': return t('ai_trend_none');
+        case 'near': return t('ai_near', { n: a.n });
+        case 'near_none': return t('ai_near_none');
+        case 'no_limit': return t('ai_no_limit');
+        case 'suggest': return t('ai_suggest', { block: a.block ? fmt(a.block) : '–', week: a.week ? fmt(a.week) : '–' });
+        default: return t('ai_suggest_none');
+      }
+    }
+    var aiLocal = el('ul', { cls: 'plain', 'aria-live': 'polite' });
+    /* The 28-day history is cached per records revision, metric and minute; typing a limit only re-applies the limits. */
+    var histKey = null, hist = null;
+    function historyNow(now) {
+      var key = recRev + '|' + state.limits.metric + '|' + Math.floor(now / 60000);
+      if (key !== histKey) { histKey = key; hist = QN.usageHistory({ records: state.records, now: now, metric: state.limits.metric }); }
+      return hist;
+    }
+    function drawAiLocal(now) {
+      var summary = QN.withLimits(historyNow(now), state.limits.block, state.limits.week);
+      var advice = QN.localAdvice(summary, QN.suggestLimits(summary));
+      aiLocal.replaceChildren.apply(aiLocal, advice.map(function (a) { return el('li', null, [aiLine(a)]); }));
+    }
+
+    var aiKeyBox = el('div');
+    var aiStatus = el('p', { cls: 'note', 'aria-live': 'polite' });
+    var aiOutHead = el('h3', { t: 'ai_result_h', hidden: true });
+    var aiOut = el('div', { cls: 'summary', 'aria-live': 'polite', hidden: true });
+    var aiBusy = false;
+    var aiRun = null;
+
+    function sendToModel() {
+      var key = aiKeyGet();
+      if (!key || aiBusy) return;
+      var now = Date.now();
+      var summary = QN.usageSummary({
+        records: state.records, now: now, metric: state.limits.metric,
+        blockLimit: state.limits.block, weekLimit: state.limits.week
+      });
+      var body = QN.buildAiRequest(QN.buildUsagePrompt(summary, QN.suggestLimits(summary), state.lang));
+      var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 30000);
+      aiBusy = true;
+      if (aiRun) aiRun.disabled = true;
+      aiStatus.textContent = t('ai_busy');
+
+      var status = 0, reply = null, failed = null;
+      fetch(AI_URL, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify(body),
+        referrerPolicy: 'no-referrer',
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function (r) {
+        status = r.status;
+        return r.json().catch(function () { return null; });
+      }).then(function (j) {
+        reply = j;
+      }, function () {
+        failed = 'net';
+      }).then(function () {
+        clearTimeout(timer);
+        aiBusy = false;
+        if (aiRun) aiRun.disabled = false;
+        if (failed) { aiStatus.textContent = t('ai_err_net'); return; }
+        if (status === 401 || status === 403) { aiStatus.textContent = t('ai_err_key', { s: status }); return; }
+        if (status < 200 || status > 299) { aiStatus.textContent = t('ai_err_http', { s: status }); return; }
+        var text = '';
+        try { text = QN.parseAiReply(reply); } catch (e) { aiStatus.textContent = t('ai_err_reply'); return; }
+        aiOut.textContent = text;
+        aiOutHead.hidden = false; aiOut.hidden = false;
+        aiStatus.textContent = '';
+      });
+    }
+
+    function drawAiKey() {
+      var key = aiKeyGet();
+      if (!key) {
+        var keyIn = el('input', { type: 'password', id: 'ai-key', autocomplete: 'off', spellcheck: 'false' });
+        var saveKey = el('button', { cls: 'btn', type: 'button', t: 'ai_key_save', on: { click: function () {
+          var k = keyIn.value.trim();
+          if (!QN.isPlausibleKey(k)) { aiStatus.textContent = t('ai_key_bad'); return; }
+          if (!aiKeySet(k)) { aiStatus.textContent = t('toast_fail'); return; }
+          keyIn.value = '';
+          aiStatus.textContent = t('ai_key_saved');
+          drawAiKey();
+        } } });
+        keyIn.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveKey.click(); } });
+        aiKeyBox.replaceChildren(el('label', { for: 'ai-key', t: 'ai_key_input' }), keyIn, el('div', { cls: 'row' }, [saveKey]));
+        aiRun = null;
+      } else {
+        aiRun = el('button', { cls: 'btn', type: 'button', t: 'ai_run', on: { click: sendToModel } });
+        aiRun.disabled = aiBusy;
+        var forget = el('button', { cls: 'btn ghost', type: 'button', t: 'ai_key_forget', on: { click: function () {
+          aiKeyClear(); aiStatus.textContent = ''; drawAiKey();
+        } } });
+        aiKeyBox.replaceChildren(
+          el('p', { cls: 'note good', t: 'ai_key_saved' }),
+          note('ai_sent'),
+          el('div', { cls: 'row' }, [aiRun, forget])
+        );
+      }
+    }
+    drawAiKey();
+
     function draw() {
       var now = Date.now();
+      drawAiLocal(now);
       var f = QN.forecast({
         records: state.records, now: now, metric: state.limits.metric,
         blockLimit: state.limits.block, weekLimit: state.limits.week
@@ -402,17 +567,19 @@
       sumBox.textContent = summaryText(f);
     }
 
+    /* Typing a limit only redraws this panel and schedules a save. Other panels do not depend on limits. */
     function setLimit(input, key) {
       input.addEventListener('input', function () {
         state.limits[key] = Number(input.value) > 0 ? Number(input.value) : 0;
-        save(); refreshAll();
+        saveSoon(); draw();
       });
     }
     setLimit(blockIn, 'block');
     setLimit(weekIn, 'week');
-    metric.addEventListener('change', function () { state.limits.metric = metric.value; save(); refreshAll(); });
+    metric.addEventListener('change', function () { state.limits.metric = metric.value; save(); draw(); });
 
     function addRecords(list) {
+      recRev++;
       var seen = Object.create(null);
       state.records.forEach(function (r) { seen[[r.ts, r.input, r.output, r.cacheRead, r.cacheWrite, r.source].join('|')] = true; });
       var added = 0;
@@ -427,8 +594,13 @@
       return added;
     }
 
+    /* The list is rebuilt only when the records or the language change, not on every redraw. */
     var recList = el('div', { 'aria-live': 'polite' });
+    var recDrawn = null;
     function drawRecords() {
+      var sig = recRev + '|' + state.lang + '|' + state.limits.metric;
+      if (sig === recDrawn) return;
+      recDrawn = sig;
       var idx = QN.recentIndices(state.records, 10);
       if (!idx.length) { recList.replaceChildren(note('use_no_recs')); return; }
       recList.replaceChildren(el('ul', { cls: 'rec' }, idx.map(function (i, k) {
@@ -436,7 +608,7 @@
         return el('li', null, [
           el('span', null, [t('use_rec_row', { d: fmtWhen(r.ts), n: fmt(QN.tokensOf(r, state.limits.metric)), s: r.source })]),
           el('button', { cls: 'btn ghost small', type: 'button', t: 'use_del', on: { click: function () {
-            state.records.splice(i, 1); save(); refreshAll();
+            state.records.splice(i, 1); recRev++; save(); draw(); drawRecords();
             // Keep keyboard focus on a row after the list is redrawn.
             var btns = recList.querySelectorAll('button');
             if (btns.length) btns[Math.min(k, btns.length - 1)].focus();
@@ -467,7 +639,7 @@
 
     var clearBtn = el('button', { cls: 'btn danger', type: 'button', t: 'use_clear', on: { click: function () {
       if (!window.confirm(t('use_clear') + '?')) return;
-      state.records = []; save(); parsedNote.textContent = ''; draw(); drawRecords(); toast(t('toast_cleared'));
+      state.records = []; recRev++; save(); parsedNote.textContent = ''; draw(); drawRecords(); toast(t('toast_cleared'));
     } } });
 
     var copySum = el('button', { cls: 'btn ghost', type: 'button', t: 'use_copy_sum', on: { click: function () {
@@ -496,6 +668,17 @@
         el('h3', { t: 'use_summary_h' }),
         sumBox,
         el('div', { cls: 'row' }, [copySum])
+      ]),
+      el('div', { cls: 'card', id: 'ai-card' }, [
+        el('h3', { t: 'ai_h' }),
+        note('ai_local'),
+        aiLocal,
+        el('h3', { t: 'ai_key_h' }),
+        note('ai_key_hint'),
+        aiKeyBox,
+        aiStatus,
+        aiOutHead,
+        aiOut
       ]),
       el('div', { cls: 'card' }, [
         el('h3', { t: 'use_add_h' }),
@@ -766,7 +949,7 @@
       try { obj = JSON.parse(txt); } catch (e) { obj = null; }
       var data = QN.normalizeImport(obj, MAX_RECORDS);
       if (!data) { toast(t('set_bad_file')); return; }
-      state.records = data.records;
+      state.records = data.records; recRev++;
       state.limits = data.limits;
       state.calib = data.calib;
       state.guide = data.guide;
@@ -800,7 +983,8 @@
           el('button', { cls: 'btn danger', type: 'button', t: 'set_clear', on: { click: function () {
             if (!window.confirm(t('set_clear_ok'))) return;
             var license = state.license, theme = state.theme;
-            state = defaults(); state.license = license; state.theme = theme; state.lang = langSel.value;
+            aiKeyClear();
+            state = defaults(); recRev++; state.license = license; state.theme = theme; state.lang = langSel.value;
             save(); langSel.value = state.lang; themeSel.value = state.theme; applyI18n(); toast(t('toast_cleared'));
           } } })
         ]),
@@ -892,10 +1076,20 @@
     ['tips', 'tab_tips', panelTips],
     ['settings', 'tab_settings', panelSettings]
   ];
-  var buttons = {}, panels = {};
+  var buttons = {}, panels = {}, built = {};
   var current = 'estimate';
 
+  /* Panels are built the first time their tab opens, so startup only pays for the visible one. */
+  function ensure(name) {
+    if (built[name]) return;
+    built[name] = true;
+    var fresh = FACTORY[name]();
+    panels[name].replaceWith(fresh);
+    panels[name] = fresh;
+  }
+
   function show(name) {
+    ensure(name);
     current = name;
     tabs.forEach(function (x) {
       var on = x[0] === name;
@@ -923,6 +1117,9 @@
     refreshAll();
   }
 
+  var FACTORY = {};
+  tabs.forEach(function (x) { FACTORY[x[0]] = x[2]; });
+
   function build() {
     var root = document.getElementById('root');
     var nav = el('nav', { cls: 'tabs', role: 'tablist' });
@@ -930,7 +1127,7 @@
     tabs.forEach(function (x) {
       buttons[x[0]] = el('button', { type: 'button', role: 'tab', 'aria-selected': 'false', tabindex: '-1', t: x[1], on: { click: function () { show(x[0]); } } });
       nav.appendChild(buttons[x[0]]);
-      panels[x[0]] = x[2]();
+      panels[x[0]] = el('section', { cls: 'panel', id: 'p-' + x[0], role: 'tabpanel' });
       main.appendChild(panels[x[0]]);
     });
     // Arrow keys, Home and End move between tabs (roving focus).
