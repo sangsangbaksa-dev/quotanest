@@ -230,3 +230,23 @@ test('alertLevel: ok below 80 percent, near from 80, over from 100, null without
   assert.equal(QN.alertLevel(null), null);
   assert.equal(QN.alertLevel(NaN), null);
 });
+
+
+test('compressText: removes standalone Korean laughter but preserves words and quoted examples', () => {
+  assert.equal(QN.compressText('하하하\n하하하').text, '');
+  assert.equal(QN.compressText('하하하\n하하하\n코드를 고쳐줘').text, '코드를 고쳐줘');
+  for (const laughter of ['하하하', 'ㅋㅋㅋ', 'ㅎㅎㅎ', '하하!', 'ㅋㅋㅋㅋ...']) {
+    assert.equal(QN.compressText(laughter).text, '');
+    assert.equal(QN.compressText('코드를 고쳐줘 ' + laughter).text, '코드를 고쳐줘');
+    assert.equal(QN.compressText(laughter + ' 코드를 고쳐줘').text.trim(), '코드를 고쳐줘');
+  }
+  for (const protectedText of ['"하하하"하하하', '"하하하  please"', '\`하하하  please\`', '"하하하"', "'ㅋㅋㅋ'", '`ㅎㅎㅎ`', '“하하하”', '‘ㅋㅋㅋ’', '하하하라는 이름', '하하하하늘', '와와와']) {
+    assert.equal(QN.compressText(protectedText).text, protectedText);
+  }
+  assert.equal(QN.compressText('설명: `please   하하하` 하하하').text, '설명: `please   하하하`');
+});
+test('compressText: matching backtick or tilde fences preserve laughter and filler', () => {
+  for (const input of ['~~~text\n하하하 please\n~~~', '````text\n```\n하하하 please\n````', '```js\n하하하 please\n```']) {
+    assert.equal(QN.compressText(input).text, input);
+  }
+});
