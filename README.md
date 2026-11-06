@@ -1,6 +1,6 @@
 # Quotanest
 
-A paid, browser-only workbench that helps Claude Code and Codex users use less of their 5-hour and weekly limits. Static site, no server of its own, no AI API calls, no account login. Data lives in `localStorage` on the device. 5 languages (en, ko, ja, zh, es).
+A paid, browser-only workbench that helps Claude Code and Codex users use less of their 5-hour and weekly limits. The app makes no AI API calls and has no account login; licence verification uses a serverless endpoint and an external licensing service. Data lives in `localStorage` on the device. 5 languages (en, ko, ja, zh, es).
 
 Working name: the folder and the product name are not final. Check trademarks (KIPRIS / USPTO / EUIPO) before launch and rename the folder and `config.js` if needed. Names like "Claude", "Codex", "OpenAI" and "ChatGPT" are used only to describe compatibility, and the landing page carries a non-affiliation notice.
 
@@ -38,7 +38,7 @@ node scripts/build.js --dist
 
 ## Deploy
 
-`.github/workflows/deploy-cloudflare.yml` tests, builds and deploys this folder to a Cloudflare Pages project named `quotanest` on pushes to `main`. The project must exist first (Cloudflare dashboard → Workers & Pages → Create → Pages → Direct Upload, name `quotanest`). Then set these variables on the project (Settings → Variables and Secrets):
+`.github/workflows/deploy-cloudflare.yml` is manually started from GitHub Actions and tests, builds and deploys this folder to a Cloudflare Pages project named `quotanest` when its required repository secrets are configured. Separately configured Git-connected hosting may build or deploy on a push or merge. The project must exist first (Cloudflare dashboard → Workers & Pages → Create → Pages → Direct Upload, name `quotanest`). Then set these variables on the project (Settings → Variables and Secrets):
 
 - `LEMONSQUEEZY_PRODUCT_ID`: pins licence keys to this product.
 - `LEMONSQUEEZY_DISABLED`: set to `1` to answer `configured: false`, which keeps the app open (the state before the product is on sale).
@@ -54,3 +54,9 @@ If the server answers `configured: false`, the app opens without a key. If licen
 - Token counts are estimates. The official tokenizers cannot run offline here.
 - The Codex log format is read on a best-effort basis; unknown lines are ignored.
 - The block limit and week limit are user input and are not official values.
+
+## 배포 전 검증
+
+설치·빌드·브라우저 검사·Cloudflare 배포 파일 구성은 [PREDEPLOY.md](PREDEPLOY.md)를 참고하세요. `codex/predeploy-2026-11-06` 브랜치의 검증 워크플로에는 배포 단계가 없습니다.
+
+When an import exceeds 20 MiB, the app asks before reading it because large files can slow the browser. Larger backup files remain importable.

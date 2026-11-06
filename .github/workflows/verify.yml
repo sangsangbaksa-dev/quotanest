@@ -1,0 +1,44 @@
+# Preparation only: this workflow has no Cloudflare credentials or deploy step.
+name: Verify deployment bundle
+on:
+  push:
+    branches: ['codex/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install test tools
+        run: npm ci
+      - name: Unit tests, build and output checks
+        run: npm run check
+      - name: Compile Pages Functions locally
+        run: npm run build:functions && node scripts/check-dist.mjs
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser regression checks
+        run: npm run test:browser
+      - name: Large import cancellation
+        run: npm run test:imports
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quotanest-deployment-bundle
+          path: dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quotanest-browser-report
+          path: artifacts/browser/
+          if-no-files-found: ignore
+          retention-days: 14

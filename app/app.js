@@ -112,6 +112,11 @@
     });
     return n;
   }
+  var labelId = 0;
+  function labelFor(key, control) {
+    if (!control.id) control.id = 'qn-field-' + (++labelId);
+    return el('label', { t: key, for: control.id });
+  }
   function stat(labelKey, value) {
     return el('div', { cls: 'stat' }, [el('div', { cls: 'k', t: labelKey }), el('div', { cls: 'v' }, [String(value)])]);
   }
@@ -159,13 +164,14 @@
     } catch (e) { toast(t('toast_fail')); }
   }
   function readFile(file, onText) {
+    if (file.size > 20 * 1024 * 1024 && !confirm(t('err_file_big'))) return;
     var r = new FileReader();
     r.onload = function () { onText(String(r.result || '')); };
     r.onerror = function () { toast(t('err_read')); };
     r.readAsText(file);
   }
   function fileButton(onText) {
-    var input = el('input', { type: 'file', accept: '.txt,.md,.json,.jsonl,.log,.js,.ts,.py,.go,.rs,.java,.kt,.swift,.rb,.php,.html,.css,.sql,.yml,.yaml,.toml,.sh' });
+    var input = el('input', { type: 'file', 'aria-label': t('est_file'), 'data-file-label': '', accept: '.txt,.md,.json,.jsonl,.log,.js,.ts,.py,.go,.rs,.java,.kt,.swift,.rb,.php,.html,.css,.sql,.yml,.yaml,.toml,.sh' });
     input.addEventListener('change', function () {
       if (input.files && input.files[0]) readFile(input.files[0], onText);
       input.value = '';
@@ -241,14 +247,14 @@
     return el('section', { cls: 'panel', id: 'p-estimate', role: 'tabpanel' }, [
       el('h2', { t: 'est_h' }),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'est_in' }), input,
-        el('label', { t: 'est_file' }), file,
+        labelFor('est_in', input), input,
+        labelFor('est_file', file), file,
         el('div', { cls: 'row' }, [runBtn, pasteBtn]),
         out
       ]),
       el('div', { cls: 'card' }, [
         el('h3', { t: 'est_calib_h' }),
-        el('label', { t: 'est_actual' }), actual,
+        labelFor('est_actual', actual), actual,
         el('div', { cls: 'row' }, [save1, reset]),
         calibNote
       ])
@@ -307,8 +313,8 @@
     return el('section', { cls: 'panel', id: 'p-compress', role: 'tabpanel' }, [
       el('h2', { t: 'cmp_h' }),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'cmp_in' }), input,
-        el('label', { t: 'cmp_budget' }), budgetIn,
+        labelFor('cmp_in', input), input,
+        labelFor('cmp_budget', budgetIn), budgetIn,
         el('div', { cls: 'row' }, [
           el('button', { cls: 'btn', type: 'button', t: 'cmp_btn', on: { click: function () { run(); } } }),
           fileButton(function (txt) { input.value = txt; run(); })
@@ -317,7 +323,7 @@
         budgetBox
       ]),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'cmp_out' }), output,
+        labelFor('cmp_out', output), output,
         el('div', { cls: 'row' }, [
           el('button', { cls: 'btn ghost', type: 'button', t: 'cmp_copy', on: { click: function () { if (output.value) copyText(output.value); } } })
         ])
@@ -482,14 +488,14 @@
     return el('section', { cls: 'panel', id: 'p-usage', role: 'tabpanel' }, [
       el('h2', { t: 'use_h' }),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'use_file' }), fileIn, parsedNote
+        labelFor('use_file', fileIn), fileIn, parsedNote
       ]),
       el('div', { cls: 'card' }, [
         el('h3', { t: 'use_limits_h' }),
-        el('label', { t: 'use_block_limit' }), blockIn,
-        el('label', { t: 'use_week_limit' }), weekIn,
-        el('label', { t: 'use_metric' }), metric,
-        el('label', { t: 'use_chart_range' }), rangeSel
+        labelFor('use_block_limit', blockIn), blockIn,
+        labelFor('use_week_limit', weekIn), weekIn,
+        labelFor('use_metric', metric), metric,
+        labelFor('use_chart_range', rangeSel), rangeSel
       ]),
       box,
       el('div', { cls: 'card' }, [
@@ -499,8 +505,8 @@
       ]),
       el('div', { cls: 'card' }, [
         el('h3', { t: 'use_add_h' }),
-        el('label', { t: 'use_when' }), when,
-        el('label', { t: 'use_tokens' }), tokens,
+        labelFor('use_when', when), when,
+        labelFor('use_tokens', tokens), tokens,
         el('div', { cls: 'row' }, [addBtn, clearBtn])
       ]),
       el('div', { cls: 'card' }, [
@@ -580,12 +586,12 @@
 
     return el('section', { cls: 'panel', id: 'p-model', role: 'tabpanel' }, [
       el('h2', { t: 'mdl_h' }),
-      el('div', { cls: 'card' }, [el('label', { t: 'mdl_task' }), sel, out]),
+      el('div', { cls: 'card' }, [labelFor('mdl_task', sel), sel, out]),
       el('div', { cls: 'card' }, [el('div', { cls: 'table-wrap' }, [table])]),
       el('div', { cls: 'card' }, [
         el('h3', { t: 'cost_h' }),
-        el('label', { t: 'cost_prompt' }), cPrompt,
-        el('label', { t: 'cost_turns' }), cTurns,
+        labelFor('cost_prompt', cPrompt), cPrompt,
+        labelFor('cost_turns', cTurns), cTurns,
         cOut
       ])
     ]);
@@ -640,8 +646,8 @@
     return el('section', { cls: 'panel', id: 'p-docs', role: 'tabpanel' }, [
       el('h2', { t: 'doc_h' }),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'doc_a' }), a, fileButton(function (txt) { a.value = txt; }),
-        el('label', { t: 'doc_b' }), b, fileButton(function (txt) { b.value = txt; }),
+        labelFor('doc_a', a), a, fileButton(function (txt) { a.value = txt; }),
+        labelFor('doc_b', b), b, fileButton(function (txt) { b.value = txt; }),
         note('doc_hint'),
         el('div', { cls: 'row' }, [el('button', { cls: 'btn', type: 'button', t: 'doc_run', on: { click: function () { run(); } } })])
       ]),
@@ -680,7 +686,7 @@
     return el('section', { cls: 'panel', id: 'p-resume', role: 'tabpanel' }, [
       el('h2', { t: 'res_h' }),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'res_in' }), input,
+        labelFor('res_in', input), input,
         el('div', { cls: 'row' }, [
           el('button', { cls: 'btn', type: 'button', t: 'res_run', on: { click: function () { run(); } } }),
           fileButton(function (txt) { input.value = txt; run(); })
@@ -688,7 +694,7 @@
       ]),
       sum,
       el('div', { cls: 'card' }, [
-        el('label', { t: 'res_prompt' }), prompt,
+        labelFor('res_prompt', prompt), prompt,
         el('div', { cls: 'row' }, [el('button', { cls: 'btn ghost', type: 'button', t: 'res_copy', on: { click: function () { if (prompt.value) copyText(prompt.value); } } })])
       ])
     ]);
@@ -781,8 +787,8 @@
     return el('section', { cls: 'panel', id: 'p-settings', role: 'tabpanel' }, [
       el('h2', { t: 'set_h' }),
       el('div', { cls: 'card' }, [
-        el('label', { t: 'set_lang' }), langSel,
-        el('label', { t: 'set_theme' }), themeSel
+        labelFor('set_lang', langSel), langSel,
+        labelFor('set_theme', themeSel), themeSel
       ]),
       el('div', { cls: 'card' }, [
         el('h3', { t: 'set_license' }), status
@@ -794,7 +800,7 @@
             delete copy.license;
             download('quotanest-data-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(copy, null, 2));
           } } }),
-          el('label', { cls: 'btn ghost', style: 'display:inline-block;cursor:pointer;margin:0', t: 'set_import' }, [fileIn])
+          el('label', { cls: 'btn ghost import-file' }, [el('span', { t: 'set_import' }), fileIn])
         ]),
         el('div', { cls: 'row' }, [
           el('button', { cls: 'btn danger', type: 'button', t: 'set_clear', on: { click: function () {
@@ -821,7 +827,7 @@
     var box = el('div', { cls: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'gate-t' }, [
       el('h2', { id: 'gate-t', t: 'gate_t' }),
       el('p', { t: 'gate_b' }),
-      el('label', { t: 'gate_key' }), key,
+      labelFor('gate_key', key), key,
       el('div', { cls: 'row' }, [unlock, buy]),
       msg,
       el('div', { cls: 'links' }, [el('a', { href: '/privacy.html', t: 'nav_privacy' }), el('a', { href: '/terms.html', t: 'nav_terms' })])
@@ -920,6 +926,7 @@
     applyTheme();
     document.querySelectorAll('[data-t]').forEach(function (n) { n.textContent = t(n.dataset.t); });
     document.querySelectorAll('[data-tp]').forEach(function (n) { n.placeholder = t(n.dataset.tp); });
+    document.querySelectorAll('[data-file-label]').forEach(function (n) { n.setAttribute('aria-label', t('est_file')); });
     refreshAll();
   }
 
