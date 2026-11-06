@@ -250,3 +250,15 @@ test('compressText: matching backtick or tilde fences preserve laughter and fill
     assert.equal(QN.compressText(input).text, input);
   }
 });
+
+
+test('compressText: Korean filler never removes a prefix inside meaningful words', () => {
+  for (const input of ['혹시나 필요한 경우', '불가능하면 오류를 보여줘', '가능하면으로 시작하는 문장']) {
+    assert.equal(QN.compressText(input).text, input);
+  }
+  assert.equal(QN.compressText('혹시 코드를 고쳐줘').text, '코드를 고쳐줘');
+  assert.equal(QN.compressText('혹시 혹시 코드를 고쳐줘').text, '코드를 고쳐줘');
+  assert.equal(QN.compressText('코드를 혹시 고쳐줘').text, '코드를 고쳐줘');
+  assert.equal(QN.compressText('하하하 코드를 고쳐줘').text, '코드를 고쳐줘');
+  assert.equal(QN.compressText('하하하').text, '');
+});

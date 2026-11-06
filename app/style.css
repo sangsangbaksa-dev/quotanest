@@ -121,3 +121,9 @@ button.btn,a.btn{min-height:44px;border-radius:10px}
 @media(max-width:420px){main{padding-top:20px}.card{padding:16px}header.top{gap:8px}nav.tabs{padding-left:var(--gutter)}}
 /* Keep empty live result regions in the accessibility tree without drawing an empty card. */
 .card:empty{margin:0;padding:0;border:0;box-shadow:none}
+
+/* Make reviewed output distinct from editable input without relying on color alone. */
+#p-compress textarea[readonly]{border-inline-start:4px solid var(--accent);background:var(--panel);font-size:14px;line-height:1.65;min-height:180px}
+#p-compress .row{gap:10px;margin-top:14px}
+#p-compress .stats .stat{border:1px solid var(--line)}
+@media(max-width:420px){#p-compress .row>.btn{flex-basis:100%}#p-compress textarea[readonly]{min-height:150px}}
