@@ -56,7 +56,8 @@ test('parseUsage: Codex token_count lines and a plain JSON array', () => {
   const r = QN.parseUsage(codex);
   assert.equal(r.records[0].source, 'codex');
   assert.equal(r.records[0].input, 600);
-  assert.equal(r.records[0].output, 120);
+  assert.equal(r.records[0].output, 100);
+  assert.equal(r.records[0].input + r.records[0].cacheRead + r.records[0].output, 1100);
   const arr = QN.parseUsage(JSON.stringify([{ ts: '2026-11-03T04:00:00Z', input: 10, output: 5 }, { ts: 'bad' }]));
   assert.equal(arr.records.length, 1);
   assert.equal(arr.skipped, 1);
@@ -261,4 +262,19 @@ test('compressText: Korean filler never removes a prefix inside meaningful words
   assert.equal(QN.compressText('코드를 혹시 고쳐줘').text, '코드를 고쳐줘');
   assert.equal(QN.compressText('하하하 코드를 고쳐줘').text, '코드를 고쳐줘');
   assert.equal(QN.compressText('하하하').text, '');
+});
+
+
+test('usage counts reject booleans and structured values while accepting numeric strings', () => {
+  const r = QN.parseUsage(JSON.stringify([{ ts: '2026-11-03T04:00:00Z', input: true, output: [100], cacheRead: { value: 50 }, cacheWrite: '25' }]));
+  assert.equal(r.records[0].input, 0);
+  assert.equal(r.records[0].output, 0);
+  assert.equal(r.records[0].cacheRead, 0);
+  assert.equal(r.records[0].cacheWrite, 25);
+});
+test('usage JSONL accepts CR-only line endings without losing records', () => {
+  const line = id => JSON.stringify({ timestamp: '2026-11-03T04:00:00Z', message: { id, usage: { input_tokens: 10, output_tokens: 5 } } });
+  const r = QN.parseUsage(line('a') + '\r' + line('b'));
+  assert.equal(r.records.length, 2);
+  assert.equal(r.skipped, 0);
 });
