@@ -127,3 +127,6 @@ button.btn,a.btn{min-height:44px;border-radius:10px}
 #p-compress .row{gap:10px;margin-top:14px}
 #p-compress .stats .stat{border:1px solid var(--line)}
 @media(max-width:420px){#p-compress .row>.btn{flex-basis:100%}#p-compress textarea[readonly]{min-height:150px}}
+
+/* WebKit file inputs have a wider intrinsic minimum than a narrow panel. */
+input[type="file"]{display:block;width:100%;max-width:100%;min-width:0;font:inherit}
