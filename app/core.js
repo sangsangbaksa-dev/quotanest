@@ -63,7 +63,29 @@
     /(请你|请您|麻烦你|麻烦您|如果可以的话)\s*/g
   ];
   var STACK = /^\s+at\s|^\s*File "[^"]+", line \d+|^\s*\.\.\. \d+ more|^\s+\.{3}\s/;
-  var FENCE = /^\s*```/;
+  var FENCE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
+  // Quoted examples and inline code are data, not conversational filler.
+  var PROTECTED = /(`+)(.*?)\1|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|“[^”]*”|‘[^’]*’/g;
+  function cleanProse(line, spacesOnly) {
+    var spaced = line.replace(/(\S)[ \t]{2,}(?=\S)/g, '$1 ');
+    if (spacesOnly) return spaced;
+    FILLER.forEach(function (rx) { spaced = spaced.replace(rx, ''); });
+    // Only standalone laughter: never delete syllables embedded in names or words.
+    return spaced.replace(/(^|\s)(?:하{2,}|ㅋ{2,}|ㅎ{2,})[,!?~.…]*(?=$|\s)/gu, '$1');
+  }
+  function withoutFiller(line, spacesOnly) {
+    var out = '', end = 0;
+    function segment(start, stop) {
+      var prefix = start && !/\s/.test(line[start - 1]) ? '\u0000' : '';
+      return cleanProse(prefix + line.slice(start, stop), spacesOnly).slice(prefix.length);
+    }
+    line.replace(PROTECTED, function (match, ticks, code, offset) {
+      out += segment(end, offset) + match;
+      end = offset + match.length;
+      return match;
+    });
+    return out + segment(end);
+  }
 
   /* Removes filler words, repeated lines, long stack traces and extra spaces. Code fences are left alone. */
   function compressText(input, opts) {
@@ -72,11 +94,14 @@
     var ops = {};
     var bump = function (k, n) { ops[k] = (ops[k] || 0) + (n || 1); };
     var lines = src.replace(/\r\n?/g, '\n').split('\n');
-    var out = [], inFence = false, blanks = 0, i = 0;
+    var out = [], inFence = null, blanks = 0, i = 0;
 
     while (i < lines.length) {
       var line = lines[i];
-      if (FENCE.test(line)) { inFence = !inFence; out.push(line); blanks = 0; i++; continue; }
+      var fence = line.match(FENCE);
+      if (fence && (!inFence || (fence[1][0] === inFence[0] && fence[1].length >= inFence.length && !fence[2].trim()))) {
+        inFence = inFence ? null : fence[1]; out.push(line); blanks = 0; i++; continue;
+      }
       if (inFence) { out.push(line); i++; continue; }
 
       if (line.trim() === '') {
@@ -101,12 +126,13 @@
       while (k + 1 < lines.length && lines[k + 1] === line) k++;
       var count = k - i + 1;
       var cleaned = line.replace(/[ \t]+$/, '');
-      var spaced = cleaned.replace(/(\S)[ \t]{2,}(?=\S)/g, '$1 ');
+      var spaced = withoutFiller(cleaned, true);
       if (spaced !== cleaned) bump('spaces');
       var unfilled = spaced;
-      FILLER.forEach(function (rx) { unfilled = unfilled.replace(rx, ''); });
+      unfilled = withoutFiller(spaced);
       if (unfilled !== spaced) bump('filler');
-      unfilled = unfilled.replace(/\s+$/, '');
+      unfilled = unfilled.trimEnd();
+      if (!unfilled.trim()) { i = k + 1; continue; }
 
       if (count >= 2) {
         out.push(unfilled + ' (×' + count + ')');

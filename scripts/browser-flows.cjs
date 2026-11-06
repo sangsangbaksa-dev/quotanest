@@ -4,6 +4,12 @@ module.exports=async function(page,base){
  await page.fill('#est-in','Please please help me write a short test message.');await page.locator('#p-estimate button').filter({hasText:/^Estimate$/}).click();
  assert.ok((await page.textContent('#p-estimate .stats')).length>10);
 
+ await page.getByRole('tab',{name:'Compress',exact:true}).click();
+ for (const [input, expected] of [['하하하',''], ['코드를 고쳐줘 하하하','코드를 고쳐줘'], ['ㅋㅋㅋ',''], ['ㅎㅎㅎ',''], ['`하하하` 하하하','`하하하`']]) {
+  await page.fill('#cmp-in',input);
+  await page.locator('#p-compress button').first().click();
+  assert.equal(await page.locator('#p-compress textarea[readonly]').inputValue(),expected,'Compression UI uses the corrected laughter rule');
+ }
  const tabs=await page.getByRole('tab').count();
  const axe=require('node:fs').readFileSync(require.resolve('axe-core/axe.min.js'),'utf8');
  for(let i=0;i<tabs;i++){
