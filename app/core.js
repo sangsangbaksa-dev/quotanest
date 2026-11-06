@@ -152,7 +152,7 @@
 
   /* ---------- usage logs and limit forecast ---------- */
 
-  function num(v) { v = Number(v); return isFinite(v) && v > 0 ? v : 0; }
+  function num(v) { v = (typeof v === 'number' || (typeof v === 'string' && v.trim())) ? Number(v) : NaN; return isFinite(v) && v > 0 ? v : 0; }
 
   function normalizeRecord(r) {
     var ts = typeof r.ts === 'number' ? r.ts : Date.parse(r.ts);
@@ -183,7 +183,8 @@
       var cached = num(u.cached_input_tokens);
       return {
         ts: o.timestamp, input: num(u.input_tokens) - cached,
-        output: num(u.output_tokens) + num(u.reasoning_output_tokens),
+        // Codex output_tokens already includes reasoning tokens; reasoning is a detail.
+        output: num(u.output_tokens),
         cacheRead: cached, cacheWrite: 0, source: 'codex', key: ''
       };
     }
@@ -203,7 +204,7 @@
         return { records: records, skipped: skipped };
       } catch (e) { /* fall through to JSONL */ }
     }
-    src.split(/\r?\n/).forEach(function (raw) {
+    src.split(/\r\n|[\r\n]/).forEach(function (raw) {
       raw = raw.trim();
       if (!raw) return;
       var o;
