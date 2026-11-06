@@ -12,7 +12,7 @@ console.log('built for', base);
 if (process.argv.includes('--dist')) {
   const out = path.join(root, 'dist');
   fs.rmSync(out, { recursive: true, force: true });
-  const items = ['index.html', 'privacy.html', 'terms.html', 'landing.css', 'landing.js', 'i18n.js', 'config.js', 'icon.svg', 'sitemap.xml', 'robots.txt', '_headers', 'app'];
+  const items = ['404.html', 'index.html', 'privacy.html', 'terms.html', 'landing.css', 'landing.js', 'i18n.js', 'config.js', 'icon.svg', 'sitemap.xml', 'robots.txt', '_headers', 'app'];
   for (const f of items) {
     const to = path.join(out, f);
     fs.mkdirSync(path.dirname(to), { recursive: true });

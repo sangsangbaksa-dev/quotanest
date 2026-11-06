@@ -95,3 +95,6 @@ ul.rec li > span { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
   .stats { grid-template-columns: 1fr 1fr; }
   .card { padding: 12px; }
 }
+
+/* Keep the import control attached when translations update its caption. */
+.import-file{display:inline-block;cursor:pointer;margin:0}
