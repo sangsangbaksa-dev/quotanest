@@ -55,10 +55,11 @@
 
   /* ---------- compression (rule based, no AI) ---------- */
 
+  var KOREAN_FILLER = /(?<!\S)(혹시|괜찮으시다면|괜찮으면|가능하시다면|가능하면)(?=\s|$)[ \t]*/g;
   var FILLER = [
     /\b(please|kindly|if possible|if you can)\b[ ,]*/gi,
     /\b(por favor|si es posible|si puedes)\b[ ,]*/gi,
-    /(혹시|괜찮으시다면|괜찮으면|가능하시다면|가능하면)\s*/g,
+    KOREAN_FILLER,
     /(お手数ですが|恐れ入りますが|よろしければ|もしよければ)\s*/g,
     /(请你|请您|麻烦你|麻烦您|如果可以的话)\s*/g
   ];
@@ -132,6 +133,7 @@
       unfilled = withoutFiller(spaced);
       if (unfilled !== spaced) bump('filler');
       unfilled = unfilled.trimEnd();
+      if (unfilled !== spaced && !/^\s/.test(spaced)) unfilled = unfilled.trimStart();
       if (!unfilled.trim()) { i = k + 1; continue; }
 
       if (count >= 2) {
