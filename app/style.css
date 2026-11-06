@@ -98,3 +98,26 @@ ul.rec li > span { min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
 
 /* Keep the import control attached when translations update its caption. */
 .import-file{display:inline-block;cursor:pointer;margin:0}
+
+
+/* A focused workspace: clear hierarchy, spacious controls and readable results. */
+header.top{box-shadow:0 3px 18px color-mix(in srgb,var(--ink) 6%,transparent)}
+header.top .brand{font-size:19px;letter-spacing:-.025em}
+nav.tabs{gap:8px;padding-top:12px;padding-bottom:12px;scrollbar-width:thin}
+nav.tabs button{min-height:40px;padding:7px 16px;font-weight:600;border-radius:12px}
+nav.tabs button[aria-selected="true"]{box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 28%,transparent)}
+main{padding-top:24px}
+h2{font-size:clamp(20px,3vw,24px);letter-spacing:-.025em;margin-bottom:16px}
+h3{font-size:16px;letter-spacing:-.01em}
+.card{border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 3px 12px color-mix(in srgb,var(--ink) 5%,transparent)}
+.card:focus-within{border-color:color-mix(in srgb,var(--accent) 38%,var(--line))}
+label{font-weight:600;margin-bottom:6px}
+textarea,input[type="text"],input[type="number"],input[type="datetime-local"],select{border-radius:10px;min-height:44px;line-height:1.45}
+textarea{padding:12px;line-height:1.55}
+button.btn,a.btn{min-height:44px;border-radius:10px}
+.stat{padding:14px;border-radius:12px}.stat .v{font-size:24px;letter-spacing:-.03em;line-height:1.2}.stat .k{line-height:1.35}
+.summary{border-radius:12px;padding:14px;line-height:1.55}
+@media(hover:hover){button.btn:not(:disabled):hover,a.btn:hover{filter:brightness(1.08)}button.btn.ghost:not(:disabled):hover{filter:none;border-color:var(--accent)}nav.tabs button:not([aria-selected="true"]):hover{border-color:var(--accent)}}
+@media(max-width:420px){main{padding-top:20px}.card{padding:16px}header.top{gap:8px}nav.tabs{padding-left:var(--gutter)}}
+/* Keep empty live result regions in the accessibility tree without drawing an empty card. */
+.card:empty{margin:0;padding:0;border:0;box-shadow:none}

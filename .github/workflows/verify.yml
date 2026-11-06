@@ -26,6 +26,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser regression checks
         run: npm run test:browser
+      - name: Large import cancellation
+        run: npm run test:imports
       - uses: actions/upload-artifact@v4
         with:
           name: quotanest-deployment-bundle

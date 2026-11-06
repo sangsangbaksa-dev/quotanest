@@ -164,6 +164,7 @@
     } catch (e) { toast(t('toast_fail')); }
   }
   function readFile(file, onText) {
+    if (file.size > 20 * 1024 * 1024 && !confirm(t('err_file_big'))) return;
     var r = new FileReader();
     r.onload = function () { onText(String(r.result || '')); };
     r.onerror = function () { toast(t('err_read')); };

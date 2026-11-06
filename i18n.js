@@ -64,9 +64,9 @@ window.QN_I18N = {
     set_h: 'Settings and data', set_lang: 'Language', set_license: 'Licence', set_status_on: 'Unlocked on this device.', set_status_off: 'Not unlocked.', set_key: 'Licence key', set_unlock: 'Unlock',
     set_export: 'Export data (JSON)', set_import: 'Import data (JSON)', set_clear: 'Delete all data on this device', set_clear_ok: 'Delete all Quotanest data on this device? This cannot be undone.',
     set_saved: 'Saved.', set_imported: 'Imported.', set_bad_file: 'That file is not a Quotanest export.', set_data_note: 'Your data is stored only in this browser. Export it to move it to another device.',
-    toast_copied: 'Copied.', toast_fail: 'Something went wrong. Try again.', toast_cleared: 'Deleted.', err_read: 'Could not read that file.', err_empty: 'Paste some text first.',
+    toast_copied: 'Copied.', toast_fail: 'Something went wrong. Try again.', toast_cleared: 'Deleted.', err_read: 'Could not read that file.', err_file_big: 'This file exceeds 20 MiB and may slow your browser. Continue?', err_empty: 'Paste some text first.',
     priv_t: 'Privacy policy', terms_t: 'Terms of use', legal_back: 'Back to Quotanest', legal_updated: 'Last updated {d}.',
-    priv_body: 'Quotanest runs in your browser. The text, logs and usage numbers you enter stay on your device in browser storage and are never sent to us.\n\nThe only network request is the optional licence check. It sends your licence key to our Cloudflare Pages Function, which passes it to Lemon Squeezy to validate it. The function stores nothing.\n\nWe do not use analytics, advertising or tracking cookies. You can delete all data from Settings at any time.',
+    priv_body: 'Quotanest runs in your browser. The text, logs and usage numbers you enter stay on your device in browser storage and are never sent to us.\n\nLoading the site makes requests to the hosting provider, which may keep request logs. An optional licence check also makes a network request. It sends your licence key to our Cloudflare Pages Function, which passes it to Lemon Squeezy to validate it. The function stores nothing.\n\nWe do not use analytics, advertising or tracking cookies. You can delete all data from Settings at any time.',
     terms_body: 'Quotanest is a one-time paid tool, provided as is.\n\nIt does not call any AI service, does not sign in to your AI accounts and does not read credentials. Token counts are estimates. Limits are numbers you enter; they are not official figures from any provider.\n\nQuotanest is not affiliated with, endorsed by or sponsored by Anthropic, OpenAI or any other company. Product names are used only to describe compatibility.\n\nRefunds follow the policy of the payment provider.'
   },
   ko: {
@@ -132,9 +132,9 @@ window.QN_I18N = {
     set_h: '설정과 데이터', set_lang: '언어', set_license: '라이선스', set_status_on: '이 기기에서 열려 있습니다.', set_status_off: '아직 잠겨 있습니다.', set_key: '라이선스 키', set_unlock: '잠금 해제',
     set_export: '데이터 내보내기 (JSON)', set_import: '데이터 가져오기 (JSON)', set_clear: '이 기기의 모든 데이터 삭제', set_clear_ok: '이 기기의 Quotanest 데이터를 모두 지울까요? 되돌릴 수 없습니다.',
     set_saved: '저장했습니다.', set_imported: '가져왔습니다.', set_bad_file: 'Quotanest 내보내기 파일이 아닙니다.', set_data_note: '데이터는 이 브라우저에만 저장됩니다. 다른 기기로 옮기려면 내보내세요.',
-    toast_copied: '복사했습니다.', toast_fail: '문제가 생겼습니다. 다시 시도하세요.', toast_cleared: '삭제했습니다.', err_read: '파일을 읽지 못했습니다.', err_empty: '먼저 텍스트를 붙여넣으세요.',
+    toast_copied: '복사했습니다.', toast_fail: '문제가 생겼습니다. 다시 시도하세요.', toast_cleared: '삭제했습니다.', err_read: '파일을 읽지 못했습니다.', err_file_big: '파일이 20MiB를 넘어 브라우저가 느려질 수 있습니다. 계속할까요?', err_empty: '먼저 텍스트를 붙여넣으세요.',
     priv_t: '개인정보 처리방침', terms_t: '이용 약관', legal_back: 'Quotanest로 돌아가기', legal_updated: '최종 수정 {d}.',
-    priv_body: 'Quotanest는 브라우저 안에서 돌아갑니다. 입력한 텍스트, 로그, 사용량 숫자는 기기의 브라우저 저장소에만 남고 저희에게 전송되지 않습니다.\n\n네트워크 요청은 선택 사항인 라이선스 확인뿐입니다. 라이선스 키를 Cloudflare Pages 함수로 보내고, 함수가 Lemon Squeezy에 전달해 검증합니다. 함수는 아무것도 저장하지 않습니다.\n\n분석 도구, 광고, 추적 쿠키는 쓰지 않습니다. 설정에서 언제든 모든 데이터를 지울 수 있습니다.',
+    priv_body: 'Quotanest는 브라우저 안에서 돌아갑니다. 입력한 텍스트, 로그, 사용량 숫자는 기기의 브라우저 저장소에만 남고 저희에게 전송되지 않습니다.\n\n사이트를 불러올 때 호스팅 업체에 요청이 전송되며, 업체가 요청 로그를 보관할 수 있습니다. 선택 사항인 라이선스 확인에도 네트워크 요청이 발생합니다. 라이선스 키를 Cloudflare Pages 함수로 보내고, 함수가 Lemon Squeezy에 전달해 검증합니다. 함수는 아무것도 저장하지 않습니다.\n\n분석 도구, 광고, 추적 쿠키는 쓰지 않습니다. 설정에서 언제든 모든 데이터를 지울 수 있습니다.',
     terms_body: 'Quotanest는 1회 결제 도구이며 있는 그대로 제공됩니다.\n\n어떤 AI 서비스도 호출하지 않고, AI 계정에 로그인하지 않으며, 자격 증명을 읽지 않습니다. 토큰 수는 추정치입니다. 한도는 사용자가 입력한 값이며 어느 제공사의 공식 수치도 아닙니다.\n\nQuotanest는 Anthropic, OpenAI 또는 다른 어떤 회사와도 제휴하거나 승인받지 않았습니다. 제품명은 호환성을 설명하기 위해서만 씁니다.\n\n환불은 결제 대행사의 정책을 따릅니다.'
   },
   ja: {
@@ -200,9 +200,9 @@ window.QN_I18N = {
     set_h: '設定とデータ', set_lang: '言語', set_license: 'ライセンス', set_status_on: 'この端末でロック解除済みです。', set_status_off: 'ロックされています。', set_key: 'ライセンスキー', set_unlock: 'ロック解除',
     set_export: 'データを書き出す (JSON)', set_import: 'データを読み込む (JSON)', set_clear: 'この端末のすべてのデータを削除', set_clear_ok: 'この端末のQuotanestのデータをすべて削除しますか? 元に戻せません。',
     set_saved: '保存しました。', set_imported: '読み込みました。', set_bad_file: 'Quotanestの書き出しファイルではありません。', set_data_note: 'データはこのブラウザにのみ保存されます。別の端末に移すには書き出してください。',
-    toast_copied: 'コピーしました。', toast_fail: '問題が発生しました。もう一度お試しください。', toast_cleared: '削除しました。', err_read: 'ファイルを読めませんでした。', err_empty: '先にテキストを貼り付けてください。',
+    toast_copied: 'コピーしました。', toast_fail: '問題が発生しました。もう一度お試しください。', toast_cleared: '削除しました。', err_read: 'ファイルを読めませんでした。', err_file_big: 'ファイルが20MiBを超え、ブラウザが遅くなる場合があります。続けますか？', err_empty: '先にテキストを貼り付けてください。',
     priv_t: 'プライバシーポリシー', terms_t: '利用規約', legal_back: 'Quotanestに戻る', legal_updated: '最終更新 {d}。',
-    priv_body: 'Quotanestはブラウザ内で動作します。入力したテキスト、ログ、使用量の数値は端末のブラウザ保存領域に残り、当方に送信されることはありません。\n\n通信はオプションのライセンス確認のみです。ライセンスキーをCloudflare Pagesの関数に送り、関数がLemon Squeezyに渡して検証します。関数は何も保存しません。\n\n解析ツール、広告、トラッキングCookieは使用しません。設定からいつでもすべてのデータを削除できます。',
+    priv_body: 'Quotanestはブラウザ内で動作します。入力したテキスト、ログ、使用量の数値は端末のブラウザ保存領域に残り、当方に送信されることはありません。\n\nサイトの読み込み時にはホスティング事業者にリクエストが送られ、事業者がログを保存する場合があります。任意のライセンス確認でも通信が発生します。ライセンスキーをCloudflare Pagesの関数に送り、関数がLemon Squeezyに渡して検証します。関数は何も保存しません。\n\n解析ツール、広告、トラッキングCookieは使用しません。設定からいつでもすべてのデータを削除できます。',
     terms_body: 'Quotanestは1回払いのツールで、現状有姿で提供されます。\n\nAIサービスの呼び出し、AIアカウントへのサインイン、認証情報の読み取りは行いません。トークン数は推定値です。上限はご自身が入力した値で、いずれの提供元の公式値でもありません。\n\nQuotanestは、Anthropic、OpenAI、その他いかなる企業とも提携・推奨・後援の関係にありません。製品名は互換性の説明のためにのみ使用します。\n\n返金は決済事業者の方針に従います。'
   },
   zh: {
@@ -268,9 +268,9 @@ window.QN_I18N = {
     set_h: '设置与数据', set_lang: '语言', set_license: '许可证', set_status_on: '已在本设备上解锁。', set_status_off: '尚未解锁。', set_key: '许可证密钥', set_unlock: '解锁',
     set_export: '导出数据（JSON）', set_import: '导入数据（JSON）', set_clear: '删除本设备上的所有数据', set_clear_ok: '确定删除本设备上所有 Quotanest 数据吗？此操作无法撤销。',
     set_saved: '已保存。', set_imported: '已导入。', set_bad_file: '这不是 Quotanest 的导出文件。', set_data_note: '数据只保存在这个浏览器中。要迁移到其他设备，请先导出。',
-    toast_copied: '已复制。', toast_fail: '出了点问题，请再试一次。', toast_cleared: '已删除。', err_read: '无法读取该文件。', err_empty: '请先粘贴一些文本。',
+    toast_copied: '已复制。', toast_fail: '出了点问题，请再试一次。', toast_cleared: '已删除。', err_read: '无法读取该文件。', err_file_big: '文件超过20 MiB，可能使浏览器变慢。继续吗？', err_empty: '请先粘贴一些文本。',
     priv_t: '隐私政策', terms_t: '使用条款', legal_back: '返回 Quotanest', legal_updated: '最后更新 {d}。',
-    priv_body: 'Quotanest 在你的浏览器中运行。你输入的文本、日志和用量数字保存在设备的浏览器存储中，绝不会发送给我们。\n\n唯一的网络请求是可选的许可证验证。它把你的许可证密钥发送到我们的 Cloudflare Pages 函数，由函数转交 Lemon Squeezy 验证。该函数不保存任何内容。\n\n我们不使用分析工具、广告或追踪 Cookie。你可以随时在设置中删除所有数据。',
+    priv_body: 'Quotanest 在你的浏览器中运行。你输入的文本、日志和用量数字保存在设备的浏览器存储中，绝不会发送给我们。\n\n加载网站时会向托管服务商发送请求，服务商可能保留请求日志。可选的许可证验证也会产生网络请求。它把你的许可证密钥发送到我们的 Cloudflare Pages 函数，由函数转交 Lemon Squeezy 验证。该函数不保存任何内容。\n\n我们不使用分析工具、广告或追踪 Cookie。你可以随时在设置中删除所有数据。',
     terms_body: 'Quotanest 是一次性付费工具，按现状提供。\n\n它不调用任何 AI 服务，不登录你的 AI 账号，也不读取凭据。token 数是估算值。额度由你输入，不是任何服务商的官方数值。\n\nQuotanest 与 Anthropic、OpenAI 或其他任何公司不存在隶属、背书或赞助关系。产品名仅用于说明兼容性。\n\n退款遵循支付服务商的政策。'
   },
   es: {
@@ -336,9 +336,9 @@ window.QN_I18N = {
     set_h: 'Ajustes y datos', set_lang: 'Idioma', set_license: 'Licencia', set_status_on: 'Desbloqueado en este dispositivo.', set_status_off: 'No desbloqueado.', set_key: 'Clave de licencia', set_unlock: 'Desbloquear',
     set_export: 'Exportar datos (JSON)', set_import: 'Importar datos (JSON)', set_clear: 'Borrar todos los datos de este dispositivo', set_clear_ok: '¿Borrar todos los datos de Quotanest de este dispositivo? No se puede deshacer.',
     set_saved: 'Guardado.', set_imported: 'Importado.', set_bad_file: 'Ese archivo no es una exportación de Quotanest.', set_data_note: 'Tus datos solo se guardan en este navegador. Expórtalos para llevarlos a otro dispositivo.',
-    toast_copied: 'Copiado.', toast_fail: 'Algo salió mal. Inténtalo de nuevo.', toast_cleared: 'Borrado.', err_read: 'No se pudo leer ese archivo.', err_empty: 'Pega primero algo de texto.',
+    toast_copied: 'Copiado.', toast_fail: 'Algo salió mal. Inténtalo de nuevo.', toast_cleared: 'Borrado.', err_read: 'No se pudo leer ese archivo.', err_file_big: 'El archivo supera los 20 MiB y puede ralentizar el navegador. ¿Continuar?', err_empty: 'Pega primero algo de texto.',
     priv_t: 'Política de privacidad', terms_t: 'Condiciones de uso', legal_back: 'Volver a Quotanest', legal_updated: 'Última actualización {d}.',
-    priv_body: 'Quotanest se ejecuta en tu navegador. El texto, los registros y los números de uso que introduces se quedan en el almacenamiento del navegador de tu dispositivo y nunca nos llegan.\n\nLa única petición de red es la comprobación opcional de la licencia. Envía tu clave a nuestra función de Cloudflare Pages, que la pasa a Lemon Squeezy para validarla. La función no guarda nada.\n\nNo usamos analítica, publicidad ni cookies de seguimiento. Puedes borrar todos los datos desde Ajustes en cualquier momento.',
+    priv_body: 'Quotanest se ejecuta en tu navegador. El texto, los registros y los números de uso que introduces se quedan en el almacenamiento del navegador de tu dispositivo y nunca nos llegan.\n\nAl cargar el sitio se envían solicitudes al proveedor de alojamiento, que puede conservar registros. La comprobación opcional de la licencia también realiza una petición. Envía tu clave a nuestra función de Cloudflare Pages, que la pasa a Lemon Squeezy para validarla. La función no guarda nada.\n\nNo usamos analítica, publicidad ni cookies de seguimiento. Puedes borrar todos los datos desde Ajustes en cualquier momento.',
     terms_body: 'Quotanest es una herramienta de pago único, que se ofrece tal cual.\n\nNo llama a ningún servicio de IA, no inicia sesión en tus cuentas de IA y no lee credenciales. Los recuentos de tokens son estimaciones. Los límites son números que introduces tú; no son cifras oficiales de ningún proveedor.\n\nQuotanest no está afiliado, respaldado ni patrocinado por Anthropic, OpenAI ni por ninguna otra empresa. Los nombres de productos se usan solo para describir la compatibilidad.\n\nLos reembolsos siguen la política del proveedor de pagos.'
   }
 };

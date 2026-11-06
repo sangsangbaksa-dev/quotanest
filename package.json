@@ -7,7 +7,8 @@
     "check": "npm test && npm run build && node scripts/check-dist.mjs",
     "test:browser": "node scripts/browser-check.cjs",
     "build:functions": "node scripts/build-functions.mjs",
-    "bundle": "npm run build && npm run build:functions && node scripts/check-dist.mjs"
+    "bundle": "npm run build && npm run build:functions && node scripts/check-dist.mjs",
+    "test:imports": "node scripts/test-large-import.cjs"
   },
   "devDependencies": {
     "playwright": "1.65.0",
