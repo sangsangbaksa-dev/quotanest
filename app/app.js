@@ -21,8 +21,8 @@
   /* ---------- state ---------- */
 
   function detectLang() {
-    var n = ((navigator.language || 'en') + '').slice(0, 2).toLowerCase();
-    return LANGS.indexOf(n) >= 0 ? n : 'en';
+    var n = ((navigator.language || '') + '').slice(0, 2).toLowerCase();
+    return LANGS.indexOf(n) >= 0 ? n : 'ko';
   }
   function defaults() {
     return {
@@ -1115,6 +1115,7 @@
 
   function applyI18n() {
     document.documentElement.lang = state.lang;
+    document.title = t('title_app');
     applyTheme();
     document.querySelectorAll('[data-t]').forEach(function (n) { n.textContent = t(n.dataset.t); });
     document.querySelectorAll('[data-tp]').forEach(function (n) { n.placeholder = t(n.dataset.tp); });

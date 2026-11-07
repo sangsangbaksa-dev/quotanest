@@ -14,18 +14,18 @@
     var s = readSaved();
     if (s && LANGS.indexOf(s.lang) >= 0) return s.lang;
     var n = (navigator.language || 'en').slice(0, 2).toLowerCase();
-    return LANGS.indexOf(n) >= 0 ? n : 'en';
+    return LANGS.indexOf(n) >= 0 ? n : 'ko';
   }
   function t(key, vars) {
-    var s = (I18N[current] && I18N[current][key]) || (I18N.en && I18N.en[key]) || '';
+    var s = (I18N[current] && I18N[current][key]) || (I18N.ko && I18N.ko[key]) || (I18N.en && I18N.en[key]) || '';
     s = s.split('{price}').join(SITE.price || '');
     if (vars) Object.keys(vars).forEach(function (k) { s = s.split('{' + k + '}').join(vars[k]); });
     return s;
   }
-  var current = 'en';
+  var current = 'ko';
 
   function apply(lang) {
-    current = I18N[lang] ? lang : 'en';
+    current = I18N[lang] ? lang : 'ko';
     document.documentElement.lang = current;
     document.querySelectorAll('[data-t]').forEach(function (n) { n.textContent = t(n.dataset.t, n.dataset.d ? { d: n.dataset.d } : null); });
     document.querySelectorAll('[data-t-body]').forEach(function (n) {

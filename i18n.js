@@ -2,6 +2,7 @@
    Missing keys fall back to English. Brand and product names stay as they are in every language. */
 window.QN_I18N = {
   en: {
+    title_home: 'Quotanest — Use less of your AI coding limit', title_app: 'Quotanest app', title_privacy: 'Privacy — Quotanest', title_terms: 'Terms — Quotanest',
     brand: 'Quotanest', tagline: 'Use less of your AI coding limit.',
     nav_app: 'Open the app', nav_privacy: 'Privacy', nav_terms: 'Terms',
     hero_title: 'Use less of your AI coding limit.',
@@ -71,6 +72,7 @@ window.QN_I18N = {
     terms_body: 'Quotanest is a one-time paid tool, provided as is.\n\nIt calls an AI service only when you add your own API key and press the AI button. It does not sign in to your AI accounts and does not read credentials. Token counts are estimates. Limits are numbers you enter; they are not official figures from any provider.\n\nQuotanest is not affiliated with, endorsed by or sponsored by Anthropic, OpenAI or any other company. Product names are used only to describe compatibility.\n\nRefunds follow the policy of the payment provider.'
   },
   ko: {
+    title_home: 'Quotanest — AI 코딩 사용 한도를 아껴 쓰세요', title_app: 'Quotanest 앱', title_privacy: '개인정보처리방침 — Quotanest', title_terms: '이용약관 — Quotanest',
     brand: 'Quotanest', tagline: 'AI 코딩 한도를 덜 쓰게 해 줍니다.',
     nav_app: '앱 열기', nav_privacy: '개인정보', nav_terms: '약관',
     hero_title: 'AI 코딩 한도를 덜 쓰세요.',
@@ -140,6 +142,7 @@ window.QN_I18N = {
     terms_body: 'Quotanest는 1회 결제 도구이며 있는 그대로 제공됩니다.\n\n본인의 API 키를 넣고 AI 버튼을 눌렀을 때만 AI 서비스를 호출합니다. AI 계정에 로그인하지 않으며, 자격 증명을 읽지 않습니다. 토큰 수는 추정치입니다. 한도는 사용자가 입력한 값이며 어느 제공사의 공식 수치도 아닙니다.\n\nQuotanest는 Anthropic, OpenAI 또는 다른 어떤 회사와도 제휴하거나 승인받지 않았습니다. 제품명은 호환성을 설명하기 위해서만 씁니다.\n\n환불은 결제 대행사의 정책을 따릅니다.'
   },
   ja: {
+    title_home: 'Quotanest — AIコーディングの上限を節約', title_app: 'Quotanest アプリ', title_privacy: 'プライバシーポリシー — Quotanest', title_terms: '利用規約 — Quotanest',
     brand: 'Quotanest', tagline: 'AIコーディングの上限を節約します。',
     nav_app: 'アプリを開く', nav_privacy: 'プライバシー', nav_terms: '利用規約',
     hero_title: 'AIコーディングの上限を節約。',
@@ -209,6 +212,7 @@ window.QN_I18N = {
     terms_body: 'Quotanestは1回払いのツールで、現状有姿で提供されます。\n\nご自身のAPIキーを入れてAIボタンを押したときにのみAIサービスを呼び出します。AIアカウントへのサインインや認証情報の読み取りは行いません。トークン数は推定値です。上限はご自身が入力した値で、いずれの提供元の公式値でもありません。\n\nQuotanestは、Anthropic、OpenAI、その他いかなる企業とも提携・推奨・後援の関係にありません。製品名は互換性の説明のためにのみ使用します。\n\n返金は決済事業者の方針に従います。'
   },
   zh: {
+    title_home: 'Quotanest — 少用 AI 编程额度', title_app: 'Quotanest 应用', title_privacy: '隐私政策 — Quotanest', title_terms: '使用条款 — Quotanest',
     brand: 'Quotanest', tagline: '少用一些 AI 编程额度。',
     nav_app: '打开应用', nav_privacy: '隐私政策', nav_terms: '使用条款',
     hero_title: '少用一些 AI 编程额度。',
@@ -278,6 +282,7 @@ window.QN_I18N = {
     terms_body: 'Quotanest 是一次性付费工具，按现状提供。\n\n只有在你添加自己的 API 密钥并点击 AI 按钮时才会调用 AI 服务。它不登录你的 AI 账号，也不读取凭据。token 数是估算值。额度由你输入，不是任何服务商的官方数值。\n\nQuotanest 与 Anthropic、OpenAI 或其他任何公司不存在隶属、背书或赞助关系。产品名仅用于说明兼容性。\n\n退款遵循支付服务商的政策。'
   },
   es: {
+    title_home: 'Quotanest — Usa menos de tu límite de programación con IA', title_app: 'Aplicación Quotanest', title_privacy: 'Política de privacidad — Quotanest', title_terms: 'Condiciones de uso — Quotanest',
     brand: 'Quotanest', tagline: 'Gasta menos de tu límite de IA para programar.',
     nav_app: 'Abrir la app', nav_privacy: 'Privacidad', nav_terms: 'Condiciones',
     hero_title: 'Gasta menos de tu límite de IA para programar.',

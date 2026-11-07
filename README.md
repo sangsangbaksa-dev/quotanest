@@ -1,6 +1,6 @@
 # Quotanest
 
-A paid, browser-only workbench that helps Claude Code and Codex users use less of their 5-hour and weekly limits. Static site, no server of its own, no account login. Data lives in `localStorage` on the device. 5 languages (en, ko, ja, zh, es).
+A paid, browser-only workbench that helps Claude Code and Codex users use less of their 5-hour and weekly limits. Static site, no server of its own, no account login. Data lives in `localStorage` on the device. 5 languages (ko default, en, ja, zh, es). The language follows the browser when it is one of the five, and the choice is saved in `localStorage` (`quotanest.v1`).
 
 The only network call is optional: an AI explanation that goes straight from the browser to the Anthropic API, and only when you have saved your own API key and pressed its button (see "AI analysis" below). Without a key the app makes no AI calls at all.
 
@@ -83,7 +83,7 @@ node --test test/*.test.js
 node scripts/build.js --dist
 ```
 
-Test counts: 36 in total (`core.test.js` and `license.test.js` 24, `ai.test.js` 12).
+Test counts: 44 in total (`core.test.js` 21, `license.test.js` 4, `ai.test.js` 12, `i18n.test.js` 7). `i18n.test.js` fails if any key is missing, empty or has different placeholders in any language, or if a page or script asks for a key the dictionary does not define.
 
 ## Deploy
 
@@ -105,3 +105,14 @@ If the server answers `configured: false`, the app opens without a key. If licen
 - The block limit and week limit are user input and are not official values. The suggested limits are arithmetic on the user's own history, not a forecast of any provider's limits.
 - The AI explanation is a model's text and can be wrong. It is given numbers only and is told not to state official limits.
 - The API key sits in `localStorage`, which any script on the same origin could read. The app loads no third-party scripts. Use a key with a spending limit.
+
+## Translations and review status
+
+Five languages are in `i18n.js`: Korean (default), English, Japanese, Chinese (Simplified) and Spanish. Translations are written as natural text, not word for word.
+
+Legal, tax and financial wording in the privacy policy, terms and the price line is machine-assisted and reviewed by native speaker: no. Before launch, have a native speaker check these keys in `ja`, `zh` and `es` (and `en` for the legal pages):
+
+- `priv_*`, `terms_*` (privacy and terms text), `nonaff` (non-affiliation line), `cta_price`, `price` wording
+- `footer_note`
+
+Korean legal wording is also not checked by a lawyer; treat the pages as drafts.
