@@ -220,8 +220,8 @@
     });
     return input;
   }
-  function download(name, text) {
-    var blob = new Blob([text], { type: 'application/json' });
+  function download(name, text, mime) {
+    var blob = new Blob([text], { type: mime || 'application/json' });
     var url = URL.createObjectURL(blob);
     var a = el('a', { href: url, download: name, hidden: true });
     document.body.appendChild(a);
@@ -560,7 +560,11 @@
         stat('use_pct', pct(f.week.pct)),
         stat('use_week_per_day', fmt(f.week.perDay))
       ]));
-      nodes.push(el('div', { cls: 'chart-wrap' }, [barChart(QN.dailyUsage({ records: state.records, now: now, metric: state.limits.metric, days: state.chartDays }))]));
+      var chartDaily = QN.dailyUsage({ records: state.records, now: now, metric: state.limits.metric, days: state.chartDays });
+      nodes.push(el('div', { cls: 'chart-wrap' }, [barChart(chartDaily)]));
+      nodes.push(el('div', { cls: 'row' }, [el('button', { cls: 'btn ghost', type: 'button', t: 'use_csv', on: { click: function () {
+        download('quotanest-daily-' + new Date(now).toISOString().slice(0, 10) + '.csv', QN.dailyUsageCsv(chartDaily), 'text/csv');
+      } } })]));
       if (f.week.freesAt) nodes.push(el('p', { cls: 'note' }, [t('use_week_drop', { d: fmtWhen(f.week.freesAt) })]));
       nodes.push(note('use_disclaimer'));
       box.replaceChildren.apply(box, nodes);

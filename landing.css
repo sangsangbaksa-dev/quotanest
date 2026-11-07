@@ -73,3 +73,28 @@ footer.site nav a { margin-left: 4px; }
 @media (prefers-reduced-motion: reduce) { .grid article { transition: none; } .grid article:hover { transform: none; } .btn { transition: none; } }
 @media (max-width: 420px) { .hero { padding-top: 32px; } header.site .brand { font-size: 16px; } }
 @media (min-width: 720px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Refinement pass: hero as a product screen, one type scale, consistent section rhythm. */
+.hero-grid { display: grid; gap: 32px; align-items: center; }
+.hero-copy { min-width: 0; }
+.shot { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow, none); overflow: hidden; max-width: 460px; width: 100%; justify-self: center; }
+.shot-bar { display: flex; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--bg); }
+.shot-bar span { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong, var(--line)); }
+.shot-body { padding: 18px 18px 20px; font-size: 14px; }
+.shot-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: var(--muted); }
+.shot-row b { color: var(--ink); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.meter { height: 10px; border-radius: 999px; background: var(--chip); margin: 10px 0 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+.meter.thin { height: 6px; margin: 8px 0 0; }
+.shot-hint { color: var(--muted); font-size: 13px; }
+.shot-sep { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.days { display: flex; align-items: flex-end; gap: 8px; height: 64px; margin: 12px 0 4px; }
+.days i { flex: 1; background: var(--chip); border-radius: 6px 6px 3px 3px; box-shadow: inset 0 0 0 1px var(--line); }
+.days i:nth-child(6) { background: var(--accent); box-shadow: none; }
+.shot-cut { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.shot-cut .shot-row b { font-size: 16px; color: var(--accent); }
+@media (min-width: 860px) { .hero-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 48px; } .hero-copy { padding-right: 8px; } }
+@media (min-width: 720px) { .hero { padding: 64px 0 40px; } }
+.hero h1 { text-wrap: balance; }
+.lead { text-wrap: pretty; }
+section.how, section.faq { margin-top: 56px; }

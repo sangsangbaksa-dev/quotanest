@@ -465,6 +465,17 @@
     return buckets;
   }
 
+  /* CSV of the per-day totals from dailyUsage: one header row, then date (local, YYYY-MM-DD) and tokens. Only numbers and dates are written, so no escaping is needed. */
+  function dailyUsageCsv(buckets) {
+    var rows = ['date,tokens'];
+    (buckets || []).forEach(function (b) {
+      var d = new Date(b.start);
+      var day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      rows.push(day + ',' + Math.max(0, Math.round(num(b.used))));
+    });
+    return rows.join('\n') + '\n';
+  }
+
   /* Rough per-task cost: prompt size times turns (each turn re-sends the context), minus the saving from the model table.
      opts: { promptTokens, turns, taskId, overrides, blockLimit }. Share values are null when no block limit is set. */
   function taskCost(opts) {
@@ -657,6 +668,7 @@
     summarizeSession: summarizeSession,
     buildResumePrompt: buildResumePrompt,
     dailyUsage: dailyUsage,
+    dailyUsageCsv: dailyUsageCsv,
     taskCost: taskCost,
     budgetCheck: budgetCheck,
     habitProgress: habitProgress,

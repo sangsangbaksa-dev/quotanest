@@ -230,3 +230,17 @@ test('alertLevel: ok below 80 percent, near from 80, over from 100, null without
   assert.equal(QN.alertLevel(null), null);
   assert.equal(QN.alertLevel(NaN), null);
 });
+
+test('dailyUsageCsv: header, one row per local day, numbers only, bad values count as zero', () => {
+  const now = new Date(2026, 5, 10, 12, 0, 0).getTime(); // 2026-06-10 local noon
+  const records = [
+    { ts: new Date(2026, 5, 9, 23, 30).getTime(), input: 100, output: 20, cacheRead: 0, cacheWrite: 0 },
+    { ts: new Date(2026, 5, 10, 8, 0).getTime(), input: 5, output: 5, cacheRead: 0, cacheWrite: 0 }
+  ];
+  const buckets = QN.dailyUsage({ records, now, metric: 'io', days: 3 });
+  const csv = QN.dailyUsageCsv(buckets);
+  assert.equal(csv, 'date,tokens\n2026-06-08,0\n2026-06-09,120\n2026-06-10,10\n');
+  assert.equal(QN.dailyUsageCsv([{ start: new Date(2026, 0, 1).getTime(), used: NaN }]), 'date,tokens\n2026-01-01,0\n');
+  assert.equal(QN.dailyUsageCsv([]), 'date,tokens\n');
+  assert.equal(QN.dailyUsageCsv(undefined), 'date,tokens\n');
+});
